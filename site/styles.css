@@ -40,6 +40,7 @@ body{
 
 .card{
   position: relative;
+  overflow: hidden;
   background: var(--cream);
   margin: clamp(40px, 6.9vw, 100px) var(--card-inset) 0;
 
@@ -288,4 +289,23 @@ h1.script{
 
 @media (max-width:480px){
   .actions{ flex-direction:column; }
+}
+
+/* decorative scatter, absolutely positioned against the card so it holds its
+   place as the page reflows - horizontal offsets use % of card width, vertical
+   offsets are fixed px tuned for the 1440 layout since card height is fluid */
+.deco{
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* below this width the card no longer has margin outside the 720px column,
+   so the bigger decorations would land on top of body text */
+@media (max-width:700px){
+  .deco--lg{ display:none; }
+}
+
+@media (max-width:480px){
+  .deco--sm{ display:none; }
 }
