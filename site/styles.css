@@ -20,23 +20,10 @@
   --wave-bottom: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20150%2032%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C16.0%20C37.5%2C32%2037.5%2C32%2075.0%2C16.0%20C112.5%2C0%20112.5%2C0%20150%2C16.0%20L150%2C0%20L0%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
   --wave-left: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%20150%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M16.0%2C0%20C0%2C37.5%200%2C37.5%2016.0%2C75.0%20C32%2C112.5%2032%2C112.5%2016.0%2C150%20L32%2C150%20L32%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
   --wave-right: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%20150%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M16.0%2C0%20C32%2C37.5%2032%2C37.5%2016.0%2C75.0%20C0%2C112.5%200%2C112.5%2016.0%2C150%20L0%2C150%20L0%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
-  /* solid fill layer for the card center and corner joints; preserveAspectRatio
+  /* solid fill layer for the card interior; preserveAspectRatio
      none is required here or the rect letterboxes to a centered square on
      non-square mask boxes, leaving the card center unmasked */
   --wave-fill: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2010%2010%27%20preserveAspectRatio%3D%27none%27%3E%3Crect%20width%3D%2710%27%20height%3D%2710%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
-
-  /* corner joints: a quarter-disk filling the pocket the two perpendicular
-     edge-strip curves leave near each true corner (their own curves rest at
-     the tile midline there, not at the corner point, so the strips alone
-     never meet). A small viewBox (e.g. 0 0 1 1) rasterizes as a near-blank
-     mask at these box sizes - it must stay in the same hundred-plus-unit
-     range as the edge-strip viewBoxes above or the arc gets lost. Stretched
-     non-uniformly by mask-size at the bottom corners, the circle becomes the
-     ellipse the taller bottom wave needs. */
-  --wave-corner-tl: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C0%20L0%2C100%20A100%2C100%200%200%200%20100%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
-  --wave-corner-tr: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M100%2C0%20L100%2C100%20A100%2C100%200%200%201%200%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
-  --wave-corner-bl: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C100%20L0%2C0%20A100%2C100%200%200%201%20100%2C100%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
-  --wave-corner-br: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M100%2C100%20L100%2C0%20A100%2C100%200%200%200%200%2C100%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
 
   /* content typography and section rhythm - pinned at 1440, clamped down to
      ~0.6x for mobile with vw scaling in between */
@@ -60,56 +47,56 @@ body{
 .card{
   position: relative;
   overflow: hidden;
-  background: var(--cream);
   margin: clamp(40px, 6.9vw, 100px) var(--card-inset) 0;
 
-  /* wavy edge: 4 full-length repeating edge-strip masks + 4 corner joints +
-     one inset center fill, unioned with mask-composite add. border-radius
-     alone cannot produce the undulating hand-drawn edge the mock calls for. */
-  mask-repeat:
-    no-repeat,
-    repeat-x, repeat-x,
-    repeat-y, repeat-y,
-    no-repeat, no-repeat, no-repeat, no-repeat;
-  mask-position:
-    calc(var(--wave-h) - 1px) calc(var(--wave-h) - 1px),
-    0 0, 0 100%,
-    0 0, 100% 0,
-    0 0, 100% 0, 0 100%, 100% 100%;
+  /* wavy edge: the outline is the INTERSECTION of "inside the top and bottom
+     waves" with "inside the left and right waves", so every corner is just
+     the point where two wave curves cross. Unioning four edge bands instead
+     lets each band's straight tile end spill past the perpendicular wave,
+     which reads as a square tab at every corner - and a repeating mask
+     layer's extent cannot be bounded to stop it. Mask layers compose only as
+     a union within one element, so the horizontal waves live here and the
+     vertical ones on .card-inner: an ancestor's mask multiplies with its
+     descendants', which is the intersection. border-radius alone cannot
+     produce the undulating hand-drawn edge the mock calls for.
+     Both mask blocks must stay in lockstep - Chromium honours whichever of
+     the two is declared last. */
+  mask-repeat: no-repeat, repeat-x, repeat-x;
+  mask-position: 0 calc(var(--wave-h) - 1px), 0 0, 0 100%;
+  /* the filler overlaps each strip by 1px - at fractional clamp() values an
+     exact abutment leaves a sub-pixel transparent seam across the card */
   mask-size:
-    calc(100% - (2 * var(--wave-h)) + 2px) calc(100% - var(--wave-h) - var(--wave-hb) + 2px),
-    var(--wave-wl) var(--wave-h), var(--wave-wlb) var(--wave-hb),
-    var(--wave-h) var(--wave-wl), var(--wave-h) var(--wave-wl),
-    var(--wave-h) var(--wave-h), var(--wave-h) var(--wave-h),
-    var(--wave-h) var(--wave-hb), var(--wave-h) var(--wave-hb);
-  mask-image:
-    var(--wave-fill),
-    var(--wave-top), var(--wave-bottom),
-    var(--wave-left), var(--wave-right),
-    var(--wave-corner-tl), var(--wave-corner-tr), var(--wave-corner-bl), var(--wave-corner-br);
-  mask-composite: add, add, add, add, add, add, add, add, add;
+    100% calc(100% - var(--wave-h) - var(--wave-hb) + 2px),
+    var(--wave-wl) var(--wave-h), var(--wave-wlb) var(--wave-hb);
+  mask-image: var(--wave-fill), var(--wave-top), var(--wave-bottom);
 
-  -webkit-mask-repeat:
-    no-repeat,
-    repeat-x, repeat-x,
-    repeat-y, repeat-y,
-    no-repeat, no-repeat, no-repeat, no-repeat;
-  -webkit-mask-position:
-    calc(var(--wave-h) - 1px) calc(var(--wave-h) - 1px),
-    0 0, 0 100%,
-    0 0, 100% 0,
-    0 0, 100% 0, 0 100%, 100% 100%;
+  -webkit-mask-repeat: no-repeat, repeat-x, repeat-x;
+  -webkit-mask-position: 0 calc(var(--wave-h) - 1px), 0 0, 0 100%;
   -webkit-mask-size:
-    calc(100% - (2 * var(--wave-h)) + 2px) calc(100% - var(--wave-h) - var(--wave-hb) + 2px),
-    var(--wave-wl) var(--wave-h), var(--wave-wlb) var(--wave-hb),
-    var(--wave-h) var(--wave-wl), var(--wave-h) var(--wave-wl),
-    var(--wave-h) var(--wave-h), var(--wave-h) var(--wave-h),
-    var(--wave-h) var(--wave-hb), var(--wave-h) var(--wave-hb);
-  -webkit-mask-image:
-    var(--wave-fill),
-    var(--wave-top), var(--wave-bottom),
-    var(--wave-left), var(--wave-right),
-    var(--wave-corner-tl), var(--wave-corner-tr), var(--wave-corner-bl), var(--wave-corner-br);
+    100% calc(100% - var(--wave-h) - var(--wave-hb) + 2px),
+    var(--wave-wl) var(--wave-h), var(--wave-wlb) var(--wave-hb);
+  -webkit-mask-image: var(--wave-fill), var(--wave-top), var(--wave-bottom);
+}
+
+/* carries the cream fill so the left/right waves mask the painted surface
+   itself; its border box must stay identical to .card's or the vertical
+   waves drift off the card edge */
+.card-inner{
+  background: var(--cream);
+
+  mask-repeat: no-repeat, repeat-y, repeat-y;
+  mask-position: calc(var(--wave-h) - 1px) 0, 0 0, 100% 0;
+  mask-size:
+    calc(100% - (2 * var(--wave-h)) + 2px) 100%,
+    var(--wave-h) var(--wave-wl), var(--wave-h) var(--wave-wl);
+  mask-image: var(--wave-fill), var(--wave-left), var(--wave-right);
+
+  -webkit-mask-repeat: no-repeat, repeat-y, repeat-y;
+  -webkit-mask-position: calc(var(--wave-h) - 1px) 0, 0 0, 100% 0;
+  -webkit-mask-size:
+    calc(100% - (2 * var(--wave-h)) + 2px) 100%,
+    var(--wave-h) var(--wave-wl), var(--wave-h) var(--wave-wl);
+  -webkit-mask-image: var(--wave-fill), var(--wave-left), var(--wave-right);
 }
 
 .content{
