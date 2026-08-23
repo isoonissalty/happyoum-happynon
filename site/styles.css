@@ -258,7 +258,10 @@ h1.script{
 
 .actions{
   margin-top: clamp(58px, 6.67vw, 96px);
-  padding-bottom: calc(clamp(29px, 3.33vw, 48px) - var(--content-pad-y));
+  /* the gap is measured to the top of the bottom wave's band, not to the card
+     edge - the wave's crest rises ~7/8 of --wave-hb into the card, so without
+     the extra term the buttons sit right on the crest */
+  padding-bottom: calc(clamp(29px, 3.33vw, 48px) + var(--wave-hb) - var(--content-pad-y));
   display:flex;
   justify-content:center;
   align-items:center;
