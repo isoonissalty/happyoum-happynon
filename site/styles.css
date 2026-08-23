@@ -24,6 +24,12 @@
      none is required here or the rect letterboxes to a centered square on
      non-square mask boxes, leaving the card center unmasked */
   --wave-fill: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2010%2010%27%20preserveAspectRatio%3D%27none%27%3E%3Crect%20width%3D%2710%27%20height%3D%2710%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+
+  /* content typography and section rhythm - pinned at 1440, clamped down to
+     ~0.6x for mobile with vw scaling in between */
+  --content-pad-y: clamp(24px, 4vw, 40px);
+  --section-gap: clamp(144px, 16.67vw, 240px);
+  --label-gap: clamp(34px, 3.89vw, 56px);
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -106,14 +112,6 @@ body{
   font-size: clamp(22px, 2.8vw, 40px);
   text-align: center;
   padding: clamp(60px, 8vw, 96px) 16px;
-}
-
-/* content typography and section rhythm - values pinned at 1440 per design.md,
-   clamped down to ~0.6x for mobile with vw scaling in between */
-:root{
-  --content-pad-y: clamp(24px, 4vw, 40px);
-  --section-gap: clamp(144px, 16.67vw, 240px);
-  --label-gap: clamp(34px, 3.89vw, 56px);
 }
 
 .content img{ max-width:100%; height:auto; }
@@ -208,7 +206,7 @@ h1.script{
   margin-bottom: clamp(14px, 1.67vw, 24px);
 }
 
-/* each icon keeps its own natural width per design.md - not a shared box */
+/* each icon keeps its own natural width instead of a shared box - the source art has mismatched aspect ratios */
 .agenda li:nth-child(1) .doodle{ width: clamp(132px, 15.28vw, 220px); }
 .agenda li:nth-child(2) .doodle{ width: clamp(138px, 15.97vw, 230px); }
 .agenda li:nth-child(3) .doodle{ width: clamp(126px, 14.58vw, 210px); }
@@ -291,18 +289,27 @@ h1.script{
   .actions{ flex-direction:column; }
 }
 
-/* decorative scatter, absolutely positioned against the card so it holds its
-   place as the page reflows - horizontal offsets use % of card width, vertical
-   offsets are fixed px tuned for the 1440 layout since card height is fluid */
+/* decorations are positioned against their own section, not the card - a
+   page-wide fixed top drifts into the wrong section once clamp() typography
+   changes the height of everything above it; anchoring locally means each
+   deco only has to fit inside its own section's height */
+.hero, .dresscode, .agenda, .where, .actions{ position: relative; }
+
 .deco{
   position: absolute;
   pointer-events: none;
   z-index: 1;
 }
 
-/* below this width the card no longer has margin outside the 720px column,
-   so the bigger decorations would land on top of body text */
-@media (max-width:700px){
+/* left/right push the deco out past the section's edge with a fixed px
+   offset larger than .content's own padding, so it always lands either in
+   the card's margin band or off the card entirely (clipped by .card's
+   overflow:hidden) - never inside the text column, at any viewport width */
+
+/* below this width .content's 720px cap stops constraining anything (the
+   card itself is already narrower), so the margin band is 0 and only the
+   smallest decorations are worth showing at all */
+@media (max-width:820px){
   .deco--lg{ display:none; }
 }
 
