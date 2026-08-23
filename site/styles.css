@@ -25,15 +25,18 @@
      non-square mask boxes, leaving the card center unmasked */
   --wave-fill: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2010%2010%27%20preserveAspectRatio%3D%27none%27%3E%3Crect%20width%3D%2710%27%20height%3D%2710%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
 
-  /* corner joints: a quarter-circle notch (radius = half the box) instead of a
-     square patch, so the outline keeps curving through the corner instead of
-     meeting the edge strips at a hard right angle. Stretched non-uniformly by
-     mask-size at the bottom corners, the circle becomes the ellipse the taller
-     bottom wave needs. */
-  --wave-corner-tl: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%2020%2020%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C10%20A10%2C10%200%200%201%2010%2C0%20L20%2C0%20L20%2C20%20L0%2C20%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
-  --wave-corner-tr: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%2020%2020%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M20%2C10%20A10%2C10%200%200%200%2010%2C0%20L0%2C0%20L0%2C20%20L20%2C20%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
-  --wave-corner-bl: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%2020%2020%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C10%20A10%2C10%200%200%200%2010%2C20%20L20%2C20%20L20%2C0%20L0%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
-  --wave-corner-br: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%2020%2020%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M20%2C10%20A10%2C10%200%200%201%2010%2C20%20L0%2C20%20L0%2C0%20L20%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  /* corner joints: a quarter-disk filling the pocket the two perpendicular
+     edge-strip curves leave near each true corner (their own curves rest at
+     the tile midline there, not at the corner point, so the strips alone
+     never meet). A small viewBox (e.g. 0 0 1 1) rasterizes as a near-blank
+     mask at these box sizes - it must stay in the same hundred-plus-unit
+     range as the edge-strip viewBoxes above or the arc gets lost. Stretched
+     non-uniformly by mask-size at the bottom corners, the circle becomes the
+     ellipse the taller bottom wave needs. */
+  --wave-corner-tl: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C0%20L0%2C100%20A100%2C100%200%200%200%20100%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  --wave-corner-tr: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M100%2C0%20L100%2C100%20A100%2C100%200%200%201%200%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  --wave-corner-bl: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C100%20L0%2C0%20A100%2C100%200%200%201%20100%2C100%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  --wave-corner-br: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M100%2C100%20L100%2C0%20A100%2C100%200%200%200%200%2C100%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
 
   /* content typography and section rhythm - pinned at 1440, clamped down to
      ~0.6x for mobile with vw scaling in between */
@@ -60,9 +63,9 @@ body{
   background: var(--cream);
   margin: clamp(40px, 6.9vw, 100px) var(--card-inset) 0;
 
-  /* wavy edge: 4 repeating edge-strip masks + 4 corner fills + one inset
-     center fill, unioned with mask-composite add. border-radius alone
-     cannot produce the undulating hand-drawn edge the mock calls for. */
+  /* wavy edge: 4 full-length repeating edge-strip masks + 4 corner joints +
+     one inset center fill, unioned with mask-composite add. border-radius
+     alone cannot produce the undulating hand-drawn edge the mock calls for. */
   mask-repeat:
     no-repeat,
     repeat-x, repeat-x,
