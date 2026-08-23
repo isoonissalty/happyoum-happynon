@@ -1,0 +1,108 @@
+:root{
+  --mint:#b5d5cd;
+  --lavender:#cbc1e1;
+  --cream:#f5ebe1;
+  --ink:#4a5560;
+  --label:#6f757c;
+
+  --stripe-w: clamp(32px, 5.85vw, 84px);
+  --card-inset: clamp(16px, 6.1vw, 88px);
+
+  /* wave geometry: top/left/right share one amplitude+wavelength, bottom gets a slower larger wave */
+  --wave-a: clamp(9px, 1vw, 14px);
+  --wave-wl: clamp(96px, 10.4vw, 150px);
+  --wave-ab: clamp(18px, 2.1vw, 30px);
+  --wave-wlb: clamp(230px, 25vw, 360px);
+  --wave-h: calc(var(--wave-a) * 2);
+  --wave-hb: calc(var(--wave-ab) * 2);
+
+  --wave-top: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20150%2032%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C16.0%20C37.5%2C0%2037.5%2C0%2075.0%2C16.0%20C112.5%2C32%20112.5%2C32%20150%2C16.0%20L150%2C32%20L0%2C32%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  --wave-bottom: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20150%2032%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C16.0%20C37.5%2C32%2037.5%2C32%2075.0%2C16.0%20C112.5%2C0%20112.5%2C0%20150%2C16.0%20L150%2C0%20L0%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  --wave-left: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%20150%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M16.0%2C0%20C0%2C37.5%200%2C37.5%2016.0%2C75.0%20C32%2C112.5%2032%2C112.5%2016.0%2C150%20L32%2C150%20L32%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  --wave-right: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2032%20150%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M16.0%2C0%20C32%2C37.5%2032%2C37.5%2016.0%2C75.0%20C0%2C112.5%200%2C112.5%2016.0%2C150%20L0%2C150%20L0%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  /* solid fill layer for the card center and corner joints; preserveAspectRatio
+     none is required here or the rect letterboxes to a centered square on
+     non-square mask boxes, leaving the card center unmasked */
+  --wave-fill: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2010%2010%27%20preserveAspectRatio%3D%27none%27%3E%3Crect%20width%3D%2710%27%20height%3D%2710%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  background: repeating-linear-gradient(90deg,
+    var(--mint) 0, var(--mint) var(--stripe-w),
+    var(--lavender) var(--stripe-w), var(--lavender) calc(var(--stripe-w) * 2));
+  font-family:'Quicksand', sans-serif;
+  color: var(--ink);
+  text-align: center;
+  overflow-x: hidden;
+}
+
+.card{
+  position: relative;
+  background: var(--cream);
+  margin: clamp(40px, 6.9vw, 100px) var(--card-inset) 0;
+
+  /* wavy edge: 4 repeating edge-strip masks + 4 corner fills + one inset
+     center fill, unioned with mask-composite add. border-radius alone
+     cannot produce the undulating hand-drawn edge the mock calls for. */
+  mask-repeat:
+    no-repeat,
+    repeat-x, repeat-x,
+    repeat-y, repeat-y,
+    no-repeat, no-repeat, no-repeat, no-repeat;
+  mask-position:
+    var(--wave-h) var(--wave-h),
+    0 0, 0 100%,
+    0 0, 100% 0,
+    0 0, 100% 0, 0 100%, 100% 100%;
+  mask-size:
+    calc(100% - (2 * var(--wave-h))) calc(100% - var(--wave-h) - var(--wave-hb)),
+    var(--wave-wl) var(--wave-h), var(--wave-wlb) var(--wave-hb),
+    var(--wave-h) var(--wave-wl), var(--wave-h) var(--wave-wl),
+    var(--wave-h) var(--wave-h), var(--wave-h) var(--wave-h),
+    var(--wave-hb) var(--wave-hb), var(--wave-hb) var(--wave-hb);
+  mask-image:
+    var(--wave-fill),
+    var(--wave-top), var(--wave-bottom),
+    var(--wave-left), var(--wave-right),
+    var(--wave-fill), var(--wave-fill), var(--wave-fill), var(--wave-fill);
+  mask-composite: add, add, add, add, add, add, add, add, add;
+
+  -webkit-mask-repeat:
+    no-repeat,
+    repeat-x, repeat-x,
+    repeat-y, repeat-y,
+    no-repeat, no-repeat, no-repeat, no-repeat;
+  -webkit-mask-position:
+    var(--wave-h) var(--wave-h),
+    0 0, 0 100%,
+    0 0, 100% 0,
+    0 0, 100% 0, 0 100%, 100% 100%;
+  -webkit-mask-size:
+    calc(100% - (2 * var(--wave-h))) calc(100% - var(--wave-h) - var(--wave-hb)),
+    var(--wave-wl) var(--wave-h), var(--wave-wlb) var(--wave-hb),
+    var(--wave-h) var(--wave-wl), var(--wave-h) var(--wave-wl),
+    var(--wave-h) var(--wave-h), var(--wave-h) var(--wave-h),
+    var(--wave-hb) var(--wave-hb), var(--wave-hb) var(--wave-hb);
+  -webkit-mask-image:
+    var(--wave-fill),
+    var(--wave-top), var(--wave-bottom),
+    var(--wave-left), var(--wave-right),
+    var(--wave-fill), var(--wave-fill), var(--wave-fill), var(--wave-fill);
+}
+
+.content{
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 40px) 24px;
+}
+
+.hashtag{
+  color: var(--cream);
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 600;
+  font-size: clamp(22px, 2.8vw, 40px);
+  text-align: center;
+  padding: clamp(60px, 8vw, 96px) 16px;
+}
