@@ -95,7 +95,7 @@ body{
 .content{
   max-width: 720px;
   margin: 0 auto;
-  padding: clamp(24px, 4vw, 40px) 24px;
+  padding: var(--content-pad-y) 24px;
 }
 
 .hashtag{
@@ -105,4 +105,187 @@ body{
   font-size: clamp(22px, 2.8vw, 40px);
   text-align: center;
   padding: clamp(60px, 8vw, 96px) 16px;
+}
+
+/* content typography and section rhythm - values pinned at 1440 per design.md,
+   clamped down to ~0.6x for mobile with vw scaling in between */
+:root{
+  --content-pad-y: clamp(24px, 4vw, 40px);
+  --section-gap: clamp(144px, 16.67vw, 240px);
+  --label-gap: clamp(34px, 3.89vw, 56px);
+}
+
+.content img{ max-width:100%; height:auto; }
+
+/* .content already carries its own top/bottom padding, so the hero and
+   actions gaps subtract it out to land on the spec'd distance from the card edge */
+.hero{ padding-top: calc(clamp(120px, 13.89vw, 200px) - var(--content-pad-y)); }
+
+.eyebrow{
+  font-family:'Oswald', sans-serif;
+  font-weight:400;
+  font-size: clamp(24px, 2.78vw, 40px);
+  letter-spacing: 0.12em;
+  margin-bottom: clamp(10px, 1.11vw, 16px);
+}
+
+.script{
+  font-family:'Rouge Script','Great Vibes', cursive;
+  font-weight:400;
+  line-height:1.1;
+}
+
+h1.script{
+  font-size: clamp(77px, 8.89vw, 128px);
+  margin-bottom: clamp(29px, 3.33vw, 48px);
+}
+
+.locket{
+  width: clamp(180px, 20.83vw, 300px);
+  margin: 0 auto clamp(24px, 2.78vw, 40px);
+  display:block;
+}
+
+.names{
+  font-size: clamp(43px, 5vw, 72px);
+  margin-bottom: clamp(14px, 1.67vw, 24px);
+}
+
+.invite{
+  font-family:'Quicksand', sans-serif;
+  font-weight:500;
+  font-size: clamp(14px, 1.67vw, 24px);
+  line-height:1.5;
+  max-width: clamp(280px, 66.7vw, 480px);
+  margin: 0 auto clamp(34px, 3.89vw, 56px);
+}
+
+.date-block{
+  font-family:'Oswald', sans-serif;
+  font-weight:400;
+  font-size: clamp(22px, 2.5vw, 36px);
+  letter-spacing: 0.12em;
+  line-height:1.1;
+}
+
+.dresscode, .agenda, .where{ margin-top: var(--section-gap); }
+
+.label{
+  color: var(--label);
+  font-family:'Quicksand', sans-serif;
+  font-weight:500;
+  font-size: clamp(17px, 1.94vw, 28px);
+  margin-bottom: var(--label-gap);
+}
+
+.dresscode img{
+  width: clamp(270px, 31.25vw, 450px);
+  margin: 0 auto;
+  display:block;
+}
+
+.agenda ul{
+  list-style:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap: clamp(67px, 7.78vw, 112px);
+}
+
+.agenda li{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.bow{
+  width: clamp(154px, 17.78vw, 256px);
+  margin-bottom: clamp(5px, 0.56vw, 8px);
+}
+
+.doodle{
+  margin-bottom: clamp(14px, 1.67vw, 24px);
+}
+
+/* each icon keeps its own natural width per design.md - not a shared box */
+.agenda li:nth-child(1) .doodle{ width: clamp(132px, 15.28vw, 220px); }
+.agenda li:nth-child(2) .doodle{ width: clamp(138px, 15.97vw, 230px); }
+.agenda li:nth-child(3) .doodle{ width: clamp(126px, 14.58vw, 210px); }
+.agenda li:nth-child(4) .doodle{ width: clamp(112px, 12.92vw, 186px); }
+
+.time{
+  font-family:'Quicksand', sans-serif;
+  font-weight:600;
+  font-size: clamp(19px, 2.22vw, 32px);
+  margin-bottom: clamp(2px, 0.28vw, 4px);
+}
+
+.what{
+  font-family:'Quicksand', sans-serif;
+  font-weight:500;
+  font-size: clamp(17px, 1.94vw, 28px);
+}
+
+.note{
+  font-family:'Quicksand', sans-serif;
+  font-weight:500;
+  font-size: clamp(12px, 1.39vw, 20px);
+  margin-top: clamp(2px, 0.28vw, 4px);
+}
+
+.maplink{ display:block; margin:0 auto; }
+
+.maplink img{
+  width: clamp(280px, 44.44vw, 640px);
+  border-radius: 40px;
+  display:block;
+  margin: 0 auto;
+}
+
+.venue{
+  font-family:'Quicksand', sans-serif;
+  font-weight:600;
+  font-size: clamp(22px, 2.5vw, 36px);
+  margin-top: clamp(24px, 2.78vw, 40px);
+}
+
+.address{
+  font-family:'Quicksand', sans-serif;
+  font-weight:500;
+  font-size: clamp(17px, 1.94vw, 28px);
+  line-height:1.5;
+  margin-top: clamp(7px, 0.83vw, 12px);
+}
+
+.actions{
+  margin-top: clamp(58px, 6.67vw, 96px);
+  padding-bottom: calc(clamp(29px, 3.33vw, 48px) - var(--content-pad-y));
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:24px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  display:inline-block;
+  border:2px solid var(--ink);
+  border-radius:999px;
+  padding:16px 40px;
+  font-family:'Quicksand', sans-serif;
+  font-weight:600;
+  font-size: clamp(14px, 1.67vw, 24px);
+  color: var(--ink);
+  background: transparent;
+  text-decoration:none;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.btn:hover{
+  background: var(--ink);
+  color: var(--cream);
+}
+
+@media (max-width:480px){
+  .actions{ flex-direction:column; }
 }
