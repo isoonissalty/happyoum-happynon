@@ -25,6 +25,16 @@
      non-square mask boxes, leaving the card center unmasked */
   --wave-fill: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2010%2010%27%20preserveAspectRatio%3D%27none%27%3E%3Crect%20width%3D%2710%27%20height%3D%2710%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
 
+  /* corner joints: a quarter-circle notch (radius = half the box) instead of a
+     square patch, so the outline keeps curving through the corner instead of
+     meeting the edge strips at a hard right angle. Stretched non-uniformly by
+     mask-size at the bottom corners, the circle becomes the ellipse the taller
+     bottom wave needs. */
+  --wave-corner-tl: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%2020%2020%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C10%20A10%2C10%200%200%201%2010%2C0%20L20%2C0%20L20%2C20%20L0%2C20%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  --wave-corner-tr: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%2020%2020%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M20%2C10%20A10%2C10%200%200%200%2010%2C0%20L0%2C0%20L0%2C20%20L20%2C20%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  --wave-corner-bl: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%2020%2020%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M0%2C10%20A10%2C10%200%200%200%2010%2C20%20L20%2C20%20L20%2C0%20L0%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+  --wave-corner-br: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http://www.w3.org/2000/svg%27%20viewBox%3D%270%200%2020%2020%27%20preserveAspectRatio%3D%27none%27%3E%3Cpath%20d%3D%27M20%2C10%20A10%2C10%200%200%201%2010%2C20%20L0%2C20%20L0%2C0%20L20%2C0%20Z%27%20fill%3D%27%234a5560%27/%3E%3C/svg%3E");
+
   /* content typography and section rhythm - pinned at 1440, clamped down to
      ~0.6x for mobile with vw scaling in between */
   --content-pad-y: clamp(24px, 4vw, 40px);
@@ -59,21 +69,21 @@ body{
     repeat-y, repeat-y,
     no-repeat, no-repeat, no-repeat, no-repeat;
   mask-position:
-    var(--wave-h) var(--wave-h),
+    calc(var(--wave-h) - 1px) calc(var(--wave-h) - 1px),
     0 0, 0 100%,
     0 0, 100% 0,
     0 0, 100% 0, 0 100%, 100% 100%;
   mask-size:
-    calc(100% - (2 * var(--wave-h))) calc(100% - var(--wave-h) - var(--wave-hb)),
+    calc(100% - (2 * var(--wave-h)) + 2px) calc(100% - var(--wave-h) - var(--wave-hb) + 2px),
     var(--wave-wl) var(--wave-h), var(--wave-wlb) var(--wave-hb),
     var(--wave-h) var(--wave-wl), var(--wave-h) var(--wave-wl),
     var(--wave-h) var(--wave-h), var(--wave-h) var(--wave-h),
-    var(--wave-hb) var(--wave-hb), var(--wave-hb) var(--wave-hb);
+    var(--wave-h) var(--wave-hb), var(--wave-h) var(--wave-hb);
   mask-image:
     var(--wave-fill),
     var(--wave-top), var(--wave-bottom),
     var(--wave-left), var(--wave-right),
-    var(--wave-fill), var(--wave-fill), var(--wave-fill), var(--wave-fill);
+    var(--wave-corner-tl), var(--wave-corner-tr), var(--wave-corner-bl), var(--wave-corner-br);
   mask-composite: add, add, add, add, add, add, add, add, add;
 
   -webkit-mask-repeat:
@@ -82,21 +92,21 @@ body{
     repeat-y, repeat-y,
     no-repeat, no-repeat, no-repeat, no-repeat;
   -webkit-mask-position:
-    var(--wave-h) var(--wave-h),
+    calc(var(--wave-h) - 1px) calc(var(--wave-h) - 1px),
     0 0, 0 100%,
     0 0, 100% 0,
     0 0, 100% 0, 0 100%, 100% 100%;
   -webkit-mask-size:
-    calc(100% - (2 * var(--wave-h))) calc(100% - var(--wave-h) - var(--wave-hb)),
+    calc(100% - (2 * var(--wave-h)) + 2px) calc(100% - var(--wave-h) - var(--wave-hb) + 2px),
     var(--wave-wl) var(--wave-h), var(--wave-wlb) var(--wave-hb),
     var(--wave-h) var(--wave-wl), var(--wave-h) var(--wave-wl),
     var(--wave-h) var(--wave-h), var(--wave-h) var(--wave-h),
-    var(--wave-hb) var(--wave-hb), var(--wave-hb) var(--wave-hb);
+    var(--wave-h) var(--wave-hb), var(--wave-h) var(--wave-hb);
   -webkit-mask-image:
     var(--wave-fill),
     var(--wave-top), var(--wave-bottom),
     var(--wave-left), var(--wave-right),
-    var(--wave-fill), var(--wave-fill), var(--wave-fill), var(--wave-fill);
+    var(--wave-corner-tl), var(--wave-corner-tr), var(--wave-corner-bl), var(--wave-corner-br);
 }
 
 .content{
@@ -140,7 +150,7 @@ h1.script{
 }
 
 .locket{
-  width: clamp(180px, 20.83vw, 300px);
+  width: clamp(276px, 31.94vw, 460px);
   margin: 0 auto clamp(24px, 2.78vw, 40px);
   display:block;
 }
@@ -309,7 +319,7 @@ h1.script{
 /* below this width .content's 720px cap stops constraining anything (the
    card itself is already narrower), so the margin band is 0 and only the
    smallest decorations are worth showing at all */
-@media (max-width:820px){
+@media (max-width:1200px){
   .deco--lg{ display:none; }
 }
 

@@ -34,7 +34,7 @@ Line-height: body 1.5; headings 1.1. Scale: use `clamp()` so mobile ~0.6x of the
 
 ## Vertical rhythm (top of section label to next, @1440)
 
-hero top pad 200 -> eyebrow -> 16 -> Married! -> 48 -> locket img (width **300px**) -> 40 -> Oum & Non -> 24 -> body (2 lines, max-w 480px) -> 56 -> date block.
+hero top pad 200 -> eyebrow -> 16 -> Married! -> 48 -> locket img (width **460px**) -> 40 -> Oum & Non -> 24 -> body (2 lines, max-w 480px) -> 56 -> date block.
 Section gap (end of one section to next label): **~240px**. Inside sections: label -> 56 -> content.
 Agenda item: bow (width **256px**) -> 8 -> icon -> 24 -> time -> 4 -> label; gap between items **112px**.
 Map: label -> 56 -> map -> 40 -> venue name -> 12 -> address.
@@ -45,7 +45,7 @@ Footer hashtag: vertically centered in the bottom stripe zone, font Quicksand 60
 
 | element | size @1440 |
 |---|---|
-| logo-hearts.png | w 300px |
+| logo-hearts.png | w 460px |
 | dresscode-cluster.png | w 450px |
 | bows (agenda) | w 256px |
 | agenda icons | h ~130-165px natural ratio (icon-registration w 220, icon-camera w 230, icon-dinner w 210, icon-afterparty w 186 - render near natural size) |
