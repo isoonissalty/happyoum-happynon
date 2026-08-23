@@ -177,7 +177,7 @@ h1.script{
   margin-bottom: var(--label-gap);
 }
 
-.dresscode img{
+.dresscode img:not(.deco){
   width: clamp(270px, 31.25vw, 450px);
   margin: 0 auto;
   display:block;
