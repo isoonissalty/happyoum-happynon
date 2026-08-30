@@ -164,24 +164,39 @@ feeling.
 ### Tile flash
 
 A pool of N images cycling through 4 slots, where N is read from `data-pool` on `.grid`.
-The couple supplies however many photos they have; the page must not assume eight.
+The couple supplies however many photos they have; the page must not assume eight. Four is
+the floor, since the markup names `tile-1.png` through `tile-4.png` directly; at exactly
+four nothing is spare to rotate in and the grid holds still.
 
-- Crossfade **600ms**, dwell **3.5s**, slot start offsets **0 / 0.9 / 1.8 / 2.7s**.
-  A slot's first swap lands at `dwell + offset`, so the opening composition holds for a
-  full beat instead of one tile changing the instant the page paints.
-- Deliberately slow and staggered. Four tiles strobing together is a photosensitivity
-  problem, and offset fades look better regardless.
-- Each slot holds two stacked `<img>` (`.tile-a`, `.tile-b`). JS sets the hidden one's
-  `src`, waits for its `decode()`, then toggles opacity - so a slot never fades to a
-  blank frame.
-- Each slot advances to the next image **no other slot is currently showing**, so
-  distinctness holds by construction for any pool. An earlier stride-based version was
-  correct only because the pool was exactly twice the slot count, which a real photo set
-  will not be. With no more photos than slots there is nothing free to rotate into, so the
-  grid stays on its opening four.
+- Crossfade **600ms**, dwell **3.5s** per slot.
+- **One shared timer, round robin, one swap in flight.** It ticks every `DWELL / SLOTS`
+  (875ms) and advances one slot per tick, so each slot still changes every 3.5s and the
+  stagger the design calls for survives.
+- **Distinctness holds because only one swap can commit at a time, not because of the
+  scan.** This is the important sentence in this section. An earlier version gave each slot
+  its own timer and had it advance to an image no other slot was showing - and that scan is
+  *not* sufficient: it runs before `decode()` and only commits after, so two slots whose
+  decodes overlap both see the same index free and both take it. Placeholders decode
+  instantly and hid it completely; forcing a 2.5s decode produced two slots on one photo in
+  48 of 60 samples. Reserving at scan time does not rescue it either, because a slot still
+  displays its old image while holding a new one, and at a pool of 5 the displayed set alone
+  occupies 4 of 5 indices - a strict no-duplicate invariant is unachievable at small pools
+  with concurrent decodes. Serialising is what makes it true.
 - The class swap happens inside `decode()`'s success path. A missing or unreadable photo
   leaves the current one up; swapping regardless paints the browser's broken-image glyph
-  inside the frame, permanently, since the interval cycles it back.
+  inside the frame, permanently, since the timer cycles it back.
+- **A stalled turn is released after `2 * DWELL`,** with a per-turn `abandoned` flag so a
+  late-settling decode cannot commit out of order. Serialising couples the slots together,
+  so without this one photo that never arrives would freeze all four. The timeout is
+  deliberately generous: re-setting `src` cancels the fetch in flight, so an eager valve
+  makes a slow connection permanently slower rather than recovering from it.
+- **After three consecutive failures the rotation stops** and the grid settles on the still
+  composition the no-script path already renders. Without it, a missing photo is
+  re-requested every turn forever - measured at 40 requests for one file in 40 seconds.
+
+`tools/pool-check.mjs` covers pools 3 through 8, the attribute missing, and a 2.5s
+per-request delay that reproduces the race. It reports 2 distinct tiles against the
+pre-serialisation scheduler and 4 against this one.
 
 ### Load sequence
 

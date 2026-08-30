@@ -1,5 +1,4 @@
 import { chromium } from 'playwright';
-import { fileURLToPath } from 'node:url';
 
 const site = new URL('../site/', import.meta.url);
 const url = new URL('index.html', site).href;

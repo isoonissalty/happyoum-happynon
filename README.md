@@ -21,11 +21,16 @@ One-time setup:
 - Replace the placeholder art in `site/assets/landing/` with the real photos, envelope,
   photo booth strip, cat die-cuts, and ticket, keeping the file names. Then run
   `node tools/landing-check.mjs` and look at the page.
-  - **Photos:** any number from five up. Set `data-pool` on the `.grid` element in
-    `site/index.html` to how many `tile-N.png` files exist, numbered from 1 with no gaps.
-    Five or fewer and the grid stays on its opening four instead of cycling. If `data-pool`
-    is missing entirely, the grid also holds still rather than cycling - it never guesses
-    how many photos exist.
+  - **Photos:** name them `tile-1.png` upward with no gaps, and set `data-pool` on the
+    `.grid` element in `site/index.html` to how many there are.
+    - **Four is the hard floor.** `site/index.html` names `tile-1.png` through
+      `tile-4.png` directly, so with fewer than four the grid paints a broken-image icon.
+    - **Exactly four** fills the grid but never cycles - there is nothing spare to rotate
+      in.
+    - **Five or more** cycles. Eight or more gives every slot two or more photos, which is
+      the liveliest.
+    - If `data-pool` is missing entirely the grid holds still rather than cycling - it
+      never guesses how many photos exist.
   - **Keep `envelope-front.png` at 780x300.** The pocket's top edge - the line every
     envelope item is positioned against - is derived from that aspect ratio. Front art at a
     different ratio moves the edge and silently re-tunes all four items at once. The check

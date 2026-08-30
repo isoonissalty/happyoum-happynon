@@ -3,7 +3,7 @@
 Playwright drives a real Chrome, so it is not part of the site - the site itself still has
 no build step. Install once:
 
-    npm install playwright@1.62.1
+    npm install
 
 Then, from the repo root:
 
