@@ -230,8 +230,12 @@ Three layers, so the items genuinely emerge from inside:
 | layer | z-index | anchor |
 |---|---|---|
 | `envelope-back.png` | 0 | `bottom:0; width:100%` |
-| popped items | 1 | absolute, see below |
-| `envelope-front.png` | 2 | `bottom:0; width:100%` |
+| popped items | 1-4 | absolute, see below |
+| `envelope-front.png` | 5 | `bottom:0; width:100%` |
+
+Each item gets its own z-index rather than sharing one. Stacking is then explicit and
+independent of the entrance order: the ticket's rotated box is far wider than the ticket,
+and left to DOM order it buries both cat heads.
 
 The back image occupies the lower ~60% of the box; the upper ~40% is headroom the items
 fly into. `.envelope` is `overflow: visible` - items are allowed to overshoot.
@@ -241,15 +245,21 @@ fly into. `.envelope` is `overflow: visible` - items are allowed to overshoot.
 Each item is absolutely positioned at its FINAL spot and carries its own custom
 properties. Percentage positions keep the arrangement intact as the envelope scales.
 
-| item | asset | left/right | bottom | width | `--rot` | `--ox` | `--oy` | `--delay` |
-|---|---|---|---|---|---|---|---|---|
-| photo strip | `photo-strip.png` | `left:8%` | `46%` | `26%` | `-14deg` | `110%` | `60%` | `0ms` |
-| cat head 1 | `cat-head-1.png` | `left:34%` | `62%` | `22%` | `-6deg` | `40%` | `130%` | `110ms` |
-| cat head 2 | `cat-head-2.png` | `right:30%` | `64%` | `22%` | `8deg` | `-30%` | `125%` | `220ms` |
-| ticket | `ticket.png` | `right:6%` | `44%` | `30%` | `16deg` | `-85%` | `65%` | `330ms` |
+| item | asset | left/right | bottom | width | `--rot` | `--ox` | `--oy` | `--delay` | z |
+|---|---|---|---|---|---|---|---|---|---|
+| photo strip | `photo-strip.png` | `left:5%` | `26%` | `24%` | `-15deg` | `90%` | `45%` | `0ms` | 1 |
+| ticket | `ticket.png` | `right:0%` | `27%` | `40%` | `14deg` | `-60%` | `70%` | `330ms` | 2 |
+| cat head 1 | `cat-head-1.png` | `left:22%` | `29%` | `30%` | `-8deg` | `55%` | `85%` | `110ms` | 3 |
+| cat head 2 | `cat-head-2.png` | `left:40%` | `30%` | `30%` | `9deg` | `15%` | `85%` | `220ms` | 4 |
 
 `--ox` / `--oy` are percentages of the item's own box, so the start position scales with
 the envelope. Each pair points its item back toward the envelope mouth - down and inward.
+
+Placement is bounded by two lines, and both were measured rather than estimated. Every
+item's bottom must fall at least 12px BELOW the front pocket's top edge, so the pocket
+genuinely occludes it; and at least 55px of each item must show ABOVE that edge, or the
+item reads as buried. An item must also clear the `.invite-tag` box entirely. Verified at
+390 / 768 / 1440 / 1920.
 
 ```css
 .pop{

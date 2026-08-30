@@ -408,10 +408,10 @@ already proven correct.
 
   <div class="envelope" aria-hidden="true">
     <img class="env-back" src="assets/landing/envelope-back.png" alt="" width="780" height="520">
-    <img class="pop pop--strip"  src="assets/landing/photo-strip.png" alt="" width="200" height="580" style="--rot:-14deg;--ox:110%;--oy:60%;--delay:0ms">
-    <img class="pop pop--cat1"   src="assets/landing/cat-head-1.png"  alt="" width="240" height="220" style="--rot:-6deg;--ox:40%;--oy:130%;--delay:110ms">
-    <img class="pop pop--cat2"   src="assets/landing/cat-head-2.png"  alt="" width="240" height="220" style="--rot:8deg;--ox:-30%;--oy:125%;--delay:220ms">
-    <img class="pop pop--ticket" src="assets/landing/ticket.png"      alt="" width="420" height="250" style="--rot:16deg;--ox:-85%;--oy:65%;--delay:330ms">
+    <img class="pop pop--strip"  src="assets/landing/photo-strip.png" alt="" width="200" height="580" style="--rot:-15deg;--ox:90%;--oy:45%;--delay:0ms">
+    <img class="pop pop--cat1"   src="assets/landing/cat-head-1.png"  alt="" width="240" height="220" style="--rot:-8deg;--ox:55%;--oy:85%;--delay:110ms">
+    <img class="pop pop--cat2"   src="assets/landing/cat-head-2.png"  alt="" width="240" height="220" style="--rot:9deg;--ox:15%;--oy:85%;--delay:220ms">
+    <img class="pop pop--ticket" src="assets/landing/ticket.png"      alt="" width="420" height="250" style="--rot:14deg;--ox:-60%;--oy:70%;--delay:330ms">
     <img class="env-front" src="assets/landing/envelope-front.png" alt="" width="780" height="300">
   </div>
 
@@ -562,18 +562,22 @@ body{ overflow-x: clip; }
   height:auto;
 }
 .env-back{ z-index:0; }
-.env-front{ z-index:2; }
+.env-front{ z-index:5; }
 
 .pop{
   position:absolute;
-  z-index:1;
   height:auto;
   transform: rotate(var(--rot));
 }
-.pop--strip { left:8%;  bottom:46%; width:26%; }
-.pop--cat1  { left:34%; bottom:62%; width:22%; }
-.pop--cat2  { right:30%; bottom:64%; width:22%; }
-.pop--ticket{ right:6%;  bottom:44%; width:30%; }
+
+/* every item dips below the front pocket's top edge so the pocket occludes it, and
+   clears that edge by enough to still read. Stacking is explicit rather than left to
+   DOM order: the ticket's rotated box is much wider than the ticket, and it buries
+   both cat heads if it paints last. */
+.pop--strip { left:5%;  bottom:26%; width:24%; z-index:1; }
+.pop--ticket{ right:0%; bottom:27%; width:40%; z-index:2; }
+.pop--cat1  { left:22%; bottom:29%; width:30%; z-index:3; }
+.pop--cat2  { left:40%; bottom:30%; width:30%; z-index:4; }
 ```
 
 - [ ] **Step 3: Write the geometry check**
@@ -617,9 +621,13 @@ for (const width of WIDTHS) {
       sticky: getComputedStyle(document.querySelector('.panel--intro')).position,
       seamTop: parseFloat(getComputedStyle(document.querySelector('.panel--invite'), '::before').top),
       waveH: parseFloat(getComputedStyle(document.querySelector('.panel--invite'), '::before').height),
+      frontTop: r('.env-front').top,
+      tagBottom: r('.invite-tag').bottom,
+      tagLeft: r('.invite-tag').left,
+      tagRight: r('.invite-tag').right,
       pops: [...document.querySelectorAll('.pop')].map(e => {
         const b = e.getBoundingClientRect();
-        return { cls: e.className, left: b.left, right: b.right, w: b.width };
+        return { cls: e.className, left: b.left, right: b.right, top: b.top, bottom: b.bottom };
       }),
     };
   });
@@ -631,6 +639,12 @@ for (const width of WIDTHS) {
   if (Math.abs(m.seamTop + m.waveH - 1) > 0.6) bad(`seam overlap is ${(m.seamTop + m.waveH).toFixed(2)}px, expected 1`);
   for (const p of m.pops) {
     if (p.left < 0 || p.right > m.winW) bad(`${p.cls} escapes the viewport (${p.left.toFixed(0)}..${p.right.toFixed(0)})`);
+    // the layered envelope only reads if each item both dips behind the pocket and
+    // still shows above it
+    if (p.bottom < m.frontTop + 12) bad(`${p.cls} does not tuck behind the pocket`);
+    if (m.frontTop - p.top < 55) bad(`${p.cls} shows only ${(m.frontTop - p.top).toFixed(0)}px above the pocket`);
+    const clearsTag = p.top > m.tagBottom + 8 || p.right < m.tagLeft || p.left > m.tagRight;
+    if (!clearsTag) bad(`${p.cls} overlaps the hashtag`);
   }
 
   // the load-bearing claim: sticky must actually pin, not merely compute as sticky
