@@ -300,6 +300,7 @@ h1.script{
 
 .deco{
   position: absolute;
+  top: var(--y);
   pointer-events: none;
   z-index: 1;
 }
@@ -318,4 +319,85 @@ h1.script{
 
 @media (max-width:480px){
   .deco--sm{ display:none; }
+}
+
+/* ---------------------------------------------------------------------------
+   Desktop composition (>=1200px)
+
+   The mock is a 1440 poster: one 720px column centred in a 1264px card, so the
+   width goes to margin and the page runs 5576px tall. Desktop keeps the poster
+   identity but spends that width - the agenda becomes a left-to-right timeline
+   and the section rhythm tightens.
+
+   The lever is where the decorations are anchored. They carry fixed px offsets
+   from the SECTION edge, so the gap between the two scatter columns is a
+   constant ~796px however wide the screen gets - widening .content alone would
+   slide stars onto the text. Below, .content spans the whole card and pays for
+   the scatter with padding instead, so the section grows with the viewport and
+   the decorations stay in the card's own margin band.
+
+   1200px is the floor because that is where .deco--lg starts showing: below it
+   the desktop card would run with only the small decorations in its margins.
+   --------------------------------------------------------------------------- */
+@media (min-width:1200px){
+  :root{
+    --section-gap: clamp(140px, 11.1vw, 176px);
+  }
+
+  /* the band absorbs everything past a 1120px section, so on a wide monitor the
+     scatter follows the content inwards instead of stranding it in empty cream;
+     the 165px floor is what keeps the largest decoration clear of the wavy edge */
+  .content{
+    max-width: none;
+    padding-inline: max(165px, calc((100% - 1120px) / 2));
+  }
+
+  .deco{ top: var(--y-lg, var(--y)); }
+
+  /* the timeline: four items across, in running order - the agenda is a
+     sequence, so a row carries what a stacked list makes the reader infer.
+     Capped so a column never outgrows the widest icon's natural 230px and
+     starts upscaling the artwork. */
+  .agenda ul{
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(20px, 2.2vw, 40px);
+    max-width: 1040px;
+    margin-inline: auto;
+  }
+
+  .agenda li{ flex: 1 1 0; min-width: 0; }
+
+  /* bow and icon each get a fixed-height box with the art sitting on its floor:
+     the source ribbons and doodles have mismatched aspect ratios, and a shared
+     floor is what keeps the four times on one baseline across the row.
+     Both selectors are pulled above `.content img{height:auto}`, which would
+     otherwise win and let each item keep its natural height. */
+  .agenda li .bow{
+    width: min(100%, 256px);
+    height: min(105px, 6.6vw);
+    object-fit: contain;
+    object-position: bottom;
+  }
+
+  .agenda li .doodle{
+    height: min(175px, 11.1vw);
+    object-fit: contain;
+    object-position: bottom;
+  }
+
+  /* widths stay in the mock's 220:230:210:186 proportion rather than being
+     normalised to the box, or the short-wide camera reads undersized next to
+     the tall icons */
+  .agenda li:nth-child(1) .doodle{ width: 96%; }
+  .agenda li:nth-child(2) .doodle{ width: 100%; }
+  .agenda li:nth-child(3) .doodle{ width: 91%; }
+  .agenda li:nth-child(4) .doodle{ width: 81%; }
+
+  /* the row is narrower than the single column was, so the agenda type steps
+     down to keep every item name on one line */
+  .agenda .time{ font-size: clamp(19px, 1.8vw, 26px); }
+  .agenda .what{ font-size: clamp(17px, 1.53vw, 22px); }
+  .agenda .note{ font-size: clamp(12px, 1.25vw, 18px); }
 }
