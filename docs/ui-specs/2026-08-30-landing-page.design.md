@@ -146,7 +146,15 @@ feeling.
 
 ### Photo grid
 
-- 2x2, `width: clamp(268px, 62vw, 468px)`, `gap: clamp(10px, 1.6vw, 18px)`, tiles `aspect-ratio:1`.
+- 2x2, `width: min(clamp(268px, 62vw, 468px), 52vh)`, `gap: clamp(10px, 1.6vw, 18px)`,
+  tiles `aspect-ratio:1`, each on a `--cream` background so a photo still loading reads as
+  an empty frame rather than a striped hole.
+- **The `52vh` cap is load-bearing.** `.panel--intro` is exactly one viewport tall and
+  centres its content, so anything that overflows is lost at BOTH ends at once: clipped by
+  the window above, and hidden under the opaque cream panel below. Sized off `vw` alone the
+  stage runs ~695px, which overflows any window shorter than about 700px - including a
+  1366x768 laptop after browser chrome, the most common desktop resolution there is, where
+  it sliced the couple's names in half.
 - Each tile has a solid cream frame, `border: clamp(4px, 0.7vw, 8px) solid var(--cream)`,
   and a small rotation - slot 1 `-1.5deg`, 2 `1.2deg`, 3 `1deg`, 4 `-1.2deg` - so the grid
   reads as hand-placed like the invitation's doodle scatter. No drop shadows; the CI has none.
@@ -155,7 +163,8 @@ feeling.
 
 ### Tile flash
 
-A pool of 8 images cycling through 4 slots.
+A pool of N images cycling through 4 slots, where N is read from `data-pool` on `.grid`.
+The couple supplies however many photos they have; the page must not assume eight.
 
 - Crossfade **600ms**, dwell **3.5s**, slot start offsets **0 / 0.9 / 1.8 / 2.7s**.
   A slot's first swap lands at `dwell + offset`, so the opening composition holds for a
@@ -165,7 +174,14 @@ A pool of 8 images cycling through 4 slots.
 - Each slot holds two stacked `<img>` (`.tile-a`, `.tile-b`). JS sets the hidden one's
   `src`, waits for its `decode()`, then toggles opacity - so a slot never fades to a
   blank frame.
-- Each slot walks the pool with a stride, so no two slots show the same image at once.
+- Each slot advances to the next image **no other slot is currently showing**, so
+  distinctness holds by construction for any pool. An earlier stride-based version was
+  correct only because the pool was exactly twice the slot count, which a real photo set
+  will not be. With no more photos than slots there is nothing free to rotate into, so the
+  grid stays on its opening four.
+- The class swap happens inside `decode()`'s success path. A missing or unreadable photo
+  leaves the current one up; swapping regardless paints the browser's broken-image glyph
+  inside the frame, permanently, since the interval cycles it back.
 
 ### Load sequence
 
@@ -341,6 +357,18 @@ agenda, this composition is inherently centered and needs no desktop reflow.
 
 `site/index.html` keeps the invitation's `<title>`, description, `og:` tags and favicon.
 Both pages load the same Google Fonts link (Oswald 400, Quicksand 500/600, Rouge Script).
+
+## Where the checks live
+
+`tools/landing-check.mjs`, `tools/motion-check.mjs` and `tools/regress.mjs`, committed and
+runnable after `npm install playwright@1.62.1`. Playwright drives a real Chrome and is not
+part of the site, which still has no build step. They are committed rather than kept as
+scratch because the placement bounds they enforce are the whole reason the envelope reads
+correctly, and the couple runs them after swapping in real art.
+
+`landing-check.mjs` covers nine viewport SIZES, not widths - short laptop windows and phone
+landscape are where the intro panel fails, and a suite that only tested tall viewports could
+not see it.
 
 ## Acceptance
 
