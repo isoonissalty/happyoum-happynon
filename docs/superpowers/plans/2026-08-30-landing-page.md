@@ -899,8 +899,9 @@ const opacity = (page, sel) => page.evaluate((s) => +getComputedStyle(document.q
 /* --- full motion --- */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  // not networkidle: that resolves at an undefined offset from first paint, which is
-  // when the CSS animation clock actually starts
+  // not networkidle: it waits for a mandatory 500ms quiet window, so it resolves at
+  // least half a second after the CSS animation clock starts at first paint. That is a
+  // structural floor rather than network noise, and no threshold survives it.
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   console.log('\nfull motion');
 
