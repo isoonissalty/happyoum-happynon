@@ -607,8 +607,11 @@ for (const width of WIDTHS) {
 
   // measure the pops in their landed state: a no-op before the motion pass, and the
   // position that actually has to fit the viewport after it
+  // this is a geometry check, so it must not depend on the entrance timing: killing the
+  // transition lands every item instantly, whether or not a motion pass exists yet
+  await page.addStyleTag({ content: '.pop{ transition: none !important; }' });
   await page.evaluate(() => document.querySelectorAll('.pop').forEach(e => e.classList.add('is-in')));
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(50);
 
   const m = await page.evaluate(() => {
     const r = (s) => document.querySelector(s).getBoundingClientRect();
@@ -896,28 +899,51 @@ const opacity = (page, sel) => page.evaluate((s) => +getComputedStyle(document.q
 /* --- full motion --- */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(url, { waitUntil: 'networkidle' });
+  // not networkidle: that resolves at an undefined offset from first paint, which is
+  // when the CSS animation clock actually starts
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
   console.log('\nfull motion');
 
   const srcs = () => page.evaluate(() =>
     [...document.querySelectorAll('.tile')].map(t => t.querySelector('img.is-shown').src.split('/').pop()));
 
-  // t ~ 0.7s: the grid is rising, the text has not started
-  await page.waitForTimeout(700);
-  if (await opacity(page, '.intro-names') > 0.05) bad('names visible before 1s');
-  if (await opacity(page, '.grid') < 0.3) bad('grid has not started by 700ms');
+  // Record when each element crosses half opacity, then assert on the ORDER and the
+  // SPREAD. Both are differences against one clock, so any offset between navigation
+  // and first paint cancels out instead of becoming a flaky threshold.
+  const seq = ['.grid', '.intro-names', '.intro-line', '.intro-and'];
+  const at = await page.evaluate(async (sels) => {
+    const seen = {};
+    const t0 = performance.now();
+    while (performance.now() - t0 < 6000 && Object.keys(seen).length < sels.length) {
+      for (const s of sels) {
+        const el = document.querySelector(s);
+        if (el && seen[s] === undefined && +getComputedStyle(el).opacity > 0.5) {
+          seen[s] = Math.round(performance.now() - t0);
+        }
+      }
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+    return seen;
+  }, seq);
+  console.log('  revealed at ms: ' + JSON.stringify(at));
+
+  for (const sel of seq) if (at[sel] === undefined) bad(`${sel} never became visible`);
+  for (let i = 1; i < seq.length; i++) {
+    if (!(at[seq[i - 1]] < at[seq[i]])) bad(`${seq[i]} does not follow ${seq[i - 1]}`);
+  }
+  if (at['.intro-and'] - at['.grid'] < 800) {
+    bad(`the reveal spans only ${at['.intro-and'] - at['.grid']}ms, so it is not staggered`);
+  }
+  for (const sel of seq) {
+    if (await opacity(page, sel) < 0.95) bad(`${sel} did not finish revealing`);
+  }
+
   const first = await srcs();
   if (new Set(first).size !== 4) bad('two slots share an image: ' + first.join(','));
 
-  // t ~ 3.0s: every entrance has finished (the last ends at 2.6s)
-  await page.waitForTimeout(2300);
-  for (const sel of ['.grid', '.intro-names', '.intro-line', '.intro-and']) {
-    if (await opacity(page, sel) < 0.95) bad(`${sel} not revealed by 3s`);
-  }
-
-  // t ~ 6.0s: slots 0-2 have swapped once, slot 3 has not - so the set has
-  // changed without every slot having cycled back to where it started
-  await page.waitForTimeout(3000);
+  // slots 0-2 have swapped once by now and slot 3 has not, so the set has changed
+  // without every slot having cycled back to where it started
+  await page.waitForTimeout(3200);
   const later = await srcs();
   if (new Set(later).size !== 4) bad('two slots share an image after cycling: ' + later.join(','));
   if (first.join() === later.join()) bad('tiles never changed');
@@ -939,7 +965,7 @@ const opacity = (page, sel) => page.evaluate((s) => +getComputedStyle(document.q
 /* --- reduced motion --- */
 {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
-  await page.goto(url, { waitUntil: 'networkidle' });
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(250);
   console.log('\nreduced motion');
 
@@ -975,8 +1001,10 @@ Motion changed `.pop`'s transform, so re-confirm the items still land inside the
 cd "$SCRATCH" && node landing-check.mjs
 ```
 
-Expected: `PASS`. The check forces `is-in` before measuring, so it is the landed positions
-that get held to the viewport - the same assertion in both tasks.
+Expected: `PASS`. The check disables the pop transition and forces `is-in` before
+measuring, so it reads the landed positions in both tasks. Waiting a fixed interval instead
+would measure mid-flight once the motion pass exists: the longest pop is 950ms (620ms plus
+the ticket's 330ms delay), and `--pop-ease` overshoots past its endpoint on the way.
 
 - [ ] **Step 7: Commit**
 
