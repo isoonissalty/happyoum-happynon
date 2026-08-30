@@ -754,13 +754,19 @@ under `prefers-reduced-motion`.
 .intro-and  { opacity:0; animation: rise .8s ease-out 1.8s forwards,
                                     bob 2.4s ease-in-out 2.6s infinite; }
 
-.pop{
+/* The entrance state is gated on .motion, which landing.js adds to <html> when it
+   runs. The LANDED composition is therefore what the page renders by default, so a
+   blocked script, a 404 on landing.js, or scripting off entirely all leave the
+   envelope full rather than empty. Every .motion-gated element sits in panel 2,
+   below the fold, and a deferred script runs within milliseconds of parse, so the
+   class lands long before any of them can be scrolled into view. */
+.motion .pop{
   transform: translate(var(--ox), var(--oy)) scale(.2);
   opacity:0;
   transition: transform 620ms var(--pop-ease) var(--delay),
               opacity 280ms ease-out var(--delay);
 }
-.pop.is-in{
+.motion .pop.is-in{
   transform: translate(0, 0) scale(1) rotate(var(--rot));
   opacity:1;
 }
@@ -775,15 +781,10 @@ under `prefers-reduced-motion`.
   }
   .intro-stage{ opacity:1; transform:none; }
   .tile img{ transition:none; }
-
-  /* the landed state comes from CSS, not from landing.js adding is-in - the media
-     query is the stated mechanism, and it has to hold if the script never runs */
-  .pop{
-    transform: rotate(var(--rot));
-    opacity:1;
-    transition:none;
-  }
 }
+
+/* .pop needs no rule here: landing.js never adds .motion under reduced motion, so the
+   base landed state already applies. */
 ```
 
 `.pop{transform:…}` here overrides the `rotate(var(--rot))` set in Task 3 because it is
@@ -799,7 +800,15 @@ declared later at equal specificity. That is intentional: the rotation now arriv
 (function () {
   'use strict';
 
-  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var root = document.documentElement;
+
+  // Nothing below runs under reduced motion, and .motion is never added, so the CSS
+  // default - the finished composition - is what renders.
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  root.classList.add('motion');
+
+  try {
 
   /* --- envelope ------------------------------------------------------------ */
 
@@ -808,20 +817,16 @@ declared later at equal specificity. That is intentional: the rotation now arriv
     for (var i = 0; i < pops.length; i++) pops[i].classList.add('is-in');
   }
 
-  if (reduce) {
-    showPops();
-  } else {
-    var io = new IntersectionObserver(function (entries, obs) {
-      for (var i = 0; i < entries.length; i++) {
-        if (entries[i].isIntersecting) {
-          showPops();
-          obs.disconnect();   // firing once; re-running on every scroll past reads as a tic
-          return;
-        }
+  var io = new IntersectionObserver(function (entries, obs) {
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].isIntersecting) {
+        showPops();
+        obs.disconnect();   // firing once; re-running on every scroll past reads as a tic
+        return;
       }
-    }, { threshold: 0.35 });
-    io.observe(document.querySelector('.panel--invite'));
-  }
+    }
+  }, { threshold: 0.35 });
+  io.observe(document.querySelector('.panel--invite'));
 
   /* --- tile flash ---------------------------------------------------------- */
 
@@ -849,28 +854,30 @@ declared later at equal specificity. That is intentional: the rotation now arriv
     }, DWELL + slot * OFFSET);   // hold the opening composition for a full beat first
   }
 
-  if (!reduce) {
-    var tiles = document.querySelectorAll('.tile');
-    for (var t = 0; t < tiles.length; t++) flash(tiles[t], t);
-  }
+  var tiles = document.querySelectorAll('.tile');
+  for (var t = 0; t < tiles.length; t++) flash(tiles[t], t);
 
   /* --- pinned-panel drift -------------------------------------------------- */
 
-  if (!reduce) {
-    var intro = document.querySelector('.panel--intro');
-    var queued = false;
+  var intro = document.querySelector('.panel--intro');
+  var queued = false;
 
-    function drift() {
-      queued = false;
-      var p = Math.min(1, Math.max(0, scrollY / innerHeight));
-      intro.style.setProperty('--p', p.toFixed(3));
-    }
+  function drift() {
+    queued = false;
+    var p = Math.min(1, Math.max(0, scrollY / innerHeight));
+    intro.style.setProperty('--p', p.toFixed(3));
+  }
 
-    addEventListener('scroll', function () {
-      if (!queued) { queued = true; requestAnimationFrame(drift); }
-    }, { passive: true });
+  addEventListener('scroll', function () {
+    if (!queued) { queued = true; requestAnimationFrame(drift); }
+  }, { passive: true });
 
-    drift();
+  drift();
+
+  } catch (e) {
+    // a throw partway through must not strand the page mid-entrance; dropping the
+    // class restores the same landed composition a script-less visitor gets
+    root.classList.remove('motion');
   }
 }());
 ```
@@ -968,6 +975,21 @@ const opacity = (page, sel) => page.evaluate((s) => +getComputedStyle(document.q
   const p = await page.evaluate(() => getComputedStyle(document.querySelector('.panel--intro')).getPropertyValue('--p').trim());
   if (parseFloat(p) < 0.99) bad(`--p is ${p} at the page bottom, expected 1`);
 
+  await page.close();
+}
+
+/* --- the landed composition must survive with no script at all --- */
+for (const [label, opts] of [
+  ['no script, reduced motion', { reducedMotion: 'reduce', javaScriptEnabled: false }],
+  ['no script, full motion',    { javaScriptEnabled: false }],
+]) {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, ...opts });
+  await page.goto(url, { waitUntil: 'load' });
+  console.log('\n' + label);
+  for (const sel of ['.pop--strip', '.pop--cat1', '.pop--cat2', '.pop--ticket']) {
+    const o = await page.$eval(sel, (el) => +getComputedStyle(el).opacity);
+    if (o < 0.99) bad(`${sel} is at opacity ${o} - the envelope renders empty`);
+  }
   await page.close();
 }
 

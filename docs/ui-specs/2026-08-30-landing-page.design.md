@@ -297,7 +297,25 @@ static end-state, not a disabled page:
   kept - it is scroll-linked, not self-animating.
 
 `landing.js` reads `matchMedia('(prefers-reduced-motion: reduce)')` once at startup and
-skips both loops.
+returns immediately when it is set.
+
+## Degrading without the script
+
+The entrance state for `.pop` is gated on a `.motion` class that `landing.js` adds to
+`<html>`, so the **landed** composition is what the page renders by default. Scripting
+switched off, a script blocker matching the filename, and a 404 on `landing.js` all leave
+the envelope full rather than empty. The script's body is wrapped in a `try`/`catch` that
+drops the class, so a throw partway through lands the same composition rather than
+stranding the page mid-entrance.
+
+Gating on a class the script adds, rather than a `<noscript>` block, is what covers the
+`landing.js`-missing case: `<noscript>` only fires when scripting is off at the browser
+level. Every `.motion`-gated element is in panel 2, below the fold, and a deferred script
+runs within milliseconds of parse, so the class is applied long before any of them can be
+scrolled into view.
+
+Text and tiles need no gate. Their entrances are pure CSS animations that run with or
+without the script, and the tile grid's first image is a static class in the markup.
 
 ## Mock assets
 
