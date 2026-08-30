@@ -167,13 +167,19 @@ body{ overflow-x: clip; }
 .intro-and  { opacity:0; animation: rise .8s ease-out 1.8s forwards,
                                     bob 2.4s ease-in-out 2.6s infinite; }
 
-.pop{
+/* The entrance state is gated on .motion, which landing.js adds to <html> when it
+   runs. The LANDED composition is therefore what the page renders by default, so a
+   blocked script, a 404 on landing.js, or scripting off entirely all leave the
+   envelope full rather than empty. Every .motion-gated element sits in panel 2,
+   below the fold, and a deferred script runs within milliseconds of parse, so the
+   class lands long before any of them can be scrolled into view. */
+.motion .pop{
   transform: translate(var(--ox), var(--oy)) scale(.2);
   opacity:0;
   transition: transform 620ms var(--pop-ease) var(--delay),
               opacity 280ms ease-out var(--delay);
 }
-.pop.is-in{
+.motion .pop.is-in{
   transform: translate(0, 0) scale(1) rotate(var(--rot));
   opacity:1;
 }
@@ -188,12 +194,7 @@ body{ overflow-x: clip; }
   }
   .intro-stage{ opacity:1; transform:none; }
   .tile img{ transition:none; }
-
-  /* the landed state comes from CSS, not from landing.js adding is-in - the media
-     query is the stated mechanism, and it has to hold if the script never runs */
-  .pop{
-    transform: rotate(var(--rot));
-    opacity:1;
-    transition:none;
-  }
 }
+
+/* .pop needs no rule here: landing.js never adds .motion under reduced motion, so the
+   base landed state already applies. */

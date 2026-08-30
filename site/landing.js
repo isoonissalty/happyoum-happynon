@@ -4,7 +4,15 @@
 (function () {
   'use strict';
 
-  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var root = document.documentElement;
+
+  // Nothing below runs under reduced motion, and .motion is never added, so the CSS
+  // default - the finished composition - is what renders.
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  root.classList.add('motion');
+
+  try {
 
   /* --- envelope ------------------------------------------------------------ */
 
@@ -13,20 +21,16 @@
     for (var i = 0; i < pops.length; i++) pops[i].classList.add('is-in');
   }
 
-  if (reduce) {
-    showPops();
-  } else {
-    var io = new IntersectionObserver(function (entries, obs) {
-      for (var i = 0; i < entries.length; i++) {
-        if (entries[i].isIntersecting) {
-          showPops();
-          obs.disconnect();   // firing once; re-running on every scroll past reads as a tic
-          return;
-        }
+  var io = new IntersectionObserver(function (entries, obs) {
+    for (var i = 0; i < entries.length; i++) {
+      if (entries[i].isIntersecting) {
+        showPops();
+        obs.disconnect();   // firing once; re-running on every scroll past reads as a tic
+        return;
       }
-    }, { threshold: 0.35 });
-    io.observe(document.querySelector('.panel--invite'));
-  }
+    }
+  }, { threshold: 0.35 });
+  io.observe(document.querySelector('.panel--invite'));
 
   /* --- tile flash ---------------------------------------------------------- */
 
@@ -54,27 +58,29 @@
     }, DWELL + slot * OFFSET);   // hold the opening composition for a full beat first
   }
 
-  if (!reduce) {
-    var tiles = document.querySelectorAll('.tile');
-    for (var t = 0; t < tiles.length; t++) flash(tiles[t], t);
-  }
+  var tiles = document.querySelectorAll('.tile');
+  for (var t = 0; t < tiles.length; t++) flash(tiles[t], t);
 
   /* --- pinned-panel drift -------------------------------------------------- */
 
-  if (!reduce) {
-    var intro = document.querySelector('.panel--intro');
-    var queued = false;
+  var intro = document.querySelector('.panel--intro');
+  var queued = false;
 
-    function drift() {
-      queued = false;
-      var p = Math.min(1, Math.max(0, scrollY / innerHeight));
-      intro.style.setProperty('--p', p.toFixed(3));
-    }
+  function drift() {
+    queued = false;
+    var p = Math.min(1, Math.max(0, scrollY / innerHeight));
+    intro.style.setProperty('--p', p.toFixed(3));
+  }
 
-    addEventListener('scroll', function () {
-      if (!queued) { queued = true; requestAnimationFrame(drift); }
-    }, { passive: true });
+  addEventListener('scroll', function () {
+    if (!queued) { queued = true; requestAnimationFrame(drift); }
+  }, { passive: true });
 
-    drift();
+  drift();
+
+  } catch (e) {
+    // a throw partway through must not strand the page mid-entrance; dropping the
+    // class restores the same landed composition a script-less visitor gets
+    root.classList.remove('motion');
   }
 }());
