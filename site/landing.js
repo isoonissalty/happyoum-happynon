@@ -34,32 +34,48 @@
 
   /* --- tile flash ---------------------------------------------------------- */
 
-  var POOL = 8, SLOTS = 4, DWELL = 3500, OFFSET = 900;
+  var grid = document.querySelector('.grid');
+  var POOL = parseInt(grid.getAttribute('data-pool'), 10) || 0;
+  var SLOTS = 4, DWELL = 3500, OFFSET = 900;
+
+  // which pool image each slot currently holds, so a slot can advance to one no other
+  // slot is showing. Distinctness is maintained by construction, rather than by the
+  // pool happening to be exactly twice the slot count.
+  var current = [0, 1, 2, 3];
 
   function flash(tile, slot) {
     var imgs = [tile.querySelector('.tile-a'), tile.querySelector('.tile-b')];
     var shown = 0;
-    var step = slot;
 
     function advance() {
-      step += SLOTS;                        // a full slot-width per turn, so no two
-      var next = imgs[1 - shown];           // slots ever land on the same image
-      next.src = 'assets/landing/tile-' + (step % POOL + 1) + '.png';
-      next.decode().catch(function () {}).then(function () {
+      var i = current[slot];
+      do { i = (i + 1) % POOL; } while (current.indexOf(i) !== -1);
+
+      var next = imgs[1 - shown];
+      next.src = 'assets/landing/tile-' + (i + 1) + '.png';
+      next.decode().then(function () {
+        current[slot] = i;
         imgs[shown].classList.remove('is-shown');
         next.classList.add('is-shown');
         shown = 1 - shown;
+      }).catch(function () {
+        // a missing or unreadable photo leaves the current one up; swapping to it
+        // would paint the browser's broken-image glyph inside the frame
       });
     }
 
     setTimeout(function () {
       advance();
       setInterval(advance, DWELL);
-    }, DWELL + slot * OFFSET);   // hold the opening composition for a full beat first
+    }, DWELL + slot * OFFSET);
   }
 
-  var tiles = document.querySelectorAll('.tile');
-  for (var t = 0; t < tiles.length; t++) flash(tiles[t], t);
+  // with no more photos than slots there is nothing free to rotate into, so the grid
+  // stays on its opening four
+  if (POOL > SLOTS) {
+    var tiles = document.querySelectorAll('.tile');
+    for (var t = 0; t < tiles.length; t++) flash(tiles[t], t);
+  }
 
   /* --- pinned-panel drift -------------------------------------------------- */
 

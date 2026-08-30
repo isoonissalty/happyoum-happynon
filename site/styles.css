@@ -242,7 +242,7 @@ h1.script{
 /* below this width .content's 720px cap stops constraining anything (the
    card itself is already narrower), so the margin band is 0 and only the
    smallest decorations are worth showing at all */
-@media (max-width:1200px){
+@media (max-width:1199.98px){
   .deco--lg{ display:none; }
 }
 

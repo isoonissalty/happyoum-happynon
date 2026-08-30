@@ -48,7 +48,7 @@ body{ overflow-x: clip; }
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap: clamp(16px, 2.6vh, 30px);
+  gap: clamp(10px, 2.2vh, 30px);
   opacity: calc(1 - var(--p, 0) * .85);
   transform: translateY(calc(var(--p, 0) * -6vh)) scale(calc(1 - var(--p, 0) * .06));
 }
@@ -71,7 +71,10 @@ body{ overflow-x: clip; }
   display:grid;
   grid-template-columns:1fr 1fr;
   gap: clamp(10px, 1.6vw, 18px);
-  width: clamp(268px, 62vw, 468px);
+  /* the panel is exactly one viewport tall, so the grid has to answer to height as
+     well as width - sized off vw alone it overflows a short laptop window, and that
+     overflow hides at both ends: clipped above, buried under the cream panel below */
+  width: min(clamp(268px, 62vw, 468px), 52vh);
 }
 
 /* rotations read as hand-placed, echoing the invitation's scattered decorations */
@@ -80,6 +83,7 @@ body{ overflow-x: clip; }
   aspect-ratio:1;
   border: clamp(4px, .7vw, 8px) solid var(--cream);
   overflow:hidden;
+  background: var(--cream);
 }
 .tile:nth-child(1){ transform: rotate(-1.5deg); }
 .tile:nth-child(2){ transform: rotate(1.2deg); }
