@@ -88,7 +88,12 @@ const hashes = {};
 for (const width of WIDTHS) {
   await page.setViewportSize({ width, height: 900 });
   await page.goto(url, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(900);   // a shorter settle produces a flaky first paint
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all([...document.images]
+      .filter((i) => !i.complete)
+      .map((i) => new Promise((res) => { i.onload = i.onerror = res; })));
+  });
   const shot = await page.screenshot({ fullPage: true });
   hashes[width] = createHash('md5').update(shot).digest('hex');
 }
@@ -588,7 +593,12 @@ const bad = (msg) => { console.log('  FAIL ' + msg); fail++; };
 for (const width of WIDTHS) {
   const page = await browser.newPage({ viewport: { width, height: 844 } });
   await page.goto(url, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(900);
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all([...document.images]
+      .filter((i) => !i.complete)
+      .map((i) => new Promise((res) => { i.onload = i.onerror = res; })));
+  });
   console.log(`\n${width}x844`);
 
   // measure the pops in their landed state: a no-op before the motion pass, and the
@@ -1002,9 +1012,24 @@ The paths in "Before sending invites" are now wrong. Replace that section with:
 - [ ] **Step 3: Run the whole acceptance list**
 
 ```bash
+# rebuild the pre-move invitation to diff against; 7623ad3 is the last commit
+# that still had it at site/index.html
+rm -rf "$SCRATCH/_base" && mkdir -p "$SCRATCH/_base"
+cd /Users/io/personal-repos/wedding
+git show 7623ad3:site/index.html  > "$SCRATCH/_base/index.html"
+git show 7623ad3:site/styles.css  > "$SCRATCH/_base/styles.css"
+ln -s /Users/io/personal-repos/wedding/site/assets "$SCRATCH/_base/assets"
+python3 -c "
+import pathlib
+p = pathlib.Path('$SCRATCH/_base/index.html'); t = p.read_text()
+assert 'oumnonhappyhappy' in t
+p.write_text(t.replace('#oumnonhappyhappy', '#happyoumhappynon'))"
+
 cd "$SCRATCH"
 node landing-check.mjs && node motion-check.mjs && \
-  node regress.mjs "file:///Users/io/personal-repos/wedding/site/invitation.html"
+  node regress.mjs \
+    "file://$SCRATCH/_base/index.html" \
+    "file:///Users/io/personal-repos/wedding/site/invitation.html"
 ```
 
 Expected: three `PASS` lines. Every numbered item in the spec's Acceptance section is
