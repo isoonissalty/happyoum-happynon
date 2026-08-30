@@ -17,7 +17,7 @@
 - **Never use the em dash.** Use a plain dash `-`. Applies to code, comments, copy, and commit messages.
 - **Comments are why-not-what,** short, and must never reference this plan. No "Task 3", no "per the spec", no "TODO-LANDING". A reader who has never seen this document must not be able to tell it existed.
 - **Never add an agent name as commit co-author.**
-- **Do not commit anything unless explicitly asked.** Each task's commit step is written out, but leave it for the user to trigger.
+- **Commit at the end of each task, on the `feat/landing-page` branch only.** Never push, never merge, never touch `main`.
 - **Hashtag is `#happyoumhappynon`** everywhere, on both pages.
 - **`100svh`, never `100vh`.**
 - **Both `mask-*` and `-webkit-mask-*` blocks must be written, with identical values.** Chromium honours whichever is declared last.
@@ -242,7 +242,7 @@ rm -rf site/_base && git status --short
 Expected: only `site/base.css` (new), `site/styles.css` (modified), and the
 `index.html -> invitation.html` rename.
 
-- [ ] **Step 7: Commit** (leave for the user to trigger)
+- [ ] **Step 7: Commit**
 
 ```bash
 git add site/base.css site/styles.css site/invitation.html
@@ -340,7 +340,7 @@ Expected, exactly:
 | `cat-head-1.png`, `cat-head-2.png` | `(240, 220)` |
 | `ticket.png` | `(420, 250)` |
 
-- [ ] **Step 3: Commit** (leave for the user to trigger)
+- [ ] **Step 3: Commit**
 
 ```bash
 git add site/assets/landing
@@ -671,7 +671,7 @@ Read `static-390.png` and `static-1440.png`. Check by eye: the wavy seam has no 
 gap against the cream, the four popped items sit between the envelope's two layers, and
 nothing collides.
 
-- [ ] **Step 6: Commit** (leave for the user to trigger)
+- [ ] **Step 6: Commit**
 
 ```bash
 git add site/index.html site/landing.css
@@ -743,7 +743,14 @@ under `prefers-reduced-motion`.
   }
   .intro-stage{ opacity:1; transform:none; }
   .tile img{ transition:none; }
-  .pop{ transition:none; }
+
+  /* the landed state comes from CSS, not from landing.js adding is-in - the media
+     query is the stated mechanism, and it has to hold if the script never runs */
+  .pop{
+    transform: rotate(var(--rot));
+    opacity:1;
+    transition:none;
+  }
 }
 ```
 
@@ -942,7 +949,7 @@ cd "$SCRATCH" && node landing-check.mjs
 Expected: `PASS`. The check forces `is-in` before measuring, so it is the landed positions
 that get held to the viewport - the same assertion in both tasks.
 
-- [ ] **Step 7: Commit** (leave for the user to trigger)
+- [ ] **Step 7: Commit**
 
 ```bash
 git add site/landing.js site/landing.css site/index.html
@@ -1030,7 +1037,7 @@ it. 390 matters on its own - `--wave-wl` is a `clamp()` that bottoms out on mobi
 geometry assertion in `landing-check.mjs` would still pass on a strip whose mask never
 painted. Read `accept-focus-*.png`: the button must carry a visible focus ring.
 
-- [ ] **Step 5: Commit** (leave for the user to trigger)
+- [ ] **Step 5: Commit**
 
 ```bash
 git add README.md site/
