@@ -247,13 +247,16 @@ properties. Percentage positions keep the arrangement intact as the envelope sca
 
 | item | asset | left/right | bottom | width | `--rot` | `--ox` | `--oy` | `--delay` | z |
 |---|---|---|---|---|---|---|---|---|---|
-| photo strip | `photo-strip.png` | `left:5%` | `26%` | `24%` | `-15deg` | `90%` | `45%` | `0ms` | 1 |
+| photo strip | `photo-strip.png` | `left:5%` | `26%` | `24%` | `-15deg` | `90%` | `56%` | `0ms` | 1 |
 | ticket | `ticket.png` | `right:0%` | `27%` | `40%` | `14deg` | `-60%` | `70%` | `330ms` | 2 |
 | cat head 1 | `cat-head-1.png` | `left:22%` | `29%` | `30%` | `-8deg` | `55%` | `85%` | `110ms` | 3 |
 | cat head 2 | `cat-head-2.png` | `left:40%` | `30%` | `30%` | `9deg` | `15%` | `85%` | `220ms` | 4 |
 
 `--ox` / `--oy` are percentages of the item's own box, so the start position scales with
 the envelope. Each pair points its item back toward the envelope mouth - down and inward.
+Every item's start box must sit entirely behind the front pocket: the items fade in over
+280ms while still travelling for 620ms, so one that starts proud of the pocket edge shows
+a faint sliver in the wrong place partway through.
 
 Placement is bounded by two lines, and both were measured rather than estimated. Every
 item must dip at least **3% of the envelope's height** BELOW the front pocket's top edge,

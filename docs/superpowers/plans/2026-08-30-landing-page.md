@@ -408,7 +408,7 @@ already proven correct.
 
   <div class="envelope" aria-hidden="true">
     <img class="env-back" src="assets/landing/envelope-back.png" alt="" width="780" height="520">
-    <img class="pop pop--strip"  src="assets/landing/photo-strip.png" alt="" width="200" height="580" style="--rot:-15deg;--ox:90%;--oy:45%;--delay:0ms">
+    <img class="pop pop--strip"  src="assets/landing/photo-strip.png" alt="" width="200" height="580" style="--rot:-15deg;--ox:90%;--oy:56%;--delay:0ms">
     <img class="pop pop--cat1"   src="assets/landing/cat-head-1.png"  alt="" width="240" height="220" style="--rot:-8deg;--ox:55%;--oy:85%;--delay:110ms">
     <img class="pop pop--cat2"   src="assets/landing/cat-head-2.png"  alt="" width="240" height="220" style="--rot:9deg;--ox:15%;--oy:85%;--delay:220ms">
     <img class="pop pop--ticket" src="assets/landing/ticket.png"      alt="" width="420" height="250" style="--rot:14deg;--ox:-60%;--oy:70%;--delay:330ms">
