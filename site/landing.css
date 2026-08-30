@@ -1,0 +1,142 @@
+/* base.css sets overflow-x:hidden. A hidden value on either axis makes the element a
+   scroll container, which silently disables position:sticky on the panels below;
+   clip suppresses the same overflow without creating one. */
+body{ overflow-x: clip; }
+
+.panel{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding-inline: clamp(16px, 5vw, 48px);
+}
+
+/* the parallax: the intro pins, and the cream sheet rides up over it */
+.panel--intro{ position:sticky; top:0; height:100svh; z-index:0; }
+
+.panel--invite{
+  position:relative;
+  z-index:1;
+  min-height:100svh;
+  background: var(--cream);
+  padding-block: clamp(56px, 9vh, 110px);
+  gap: clamp(18px, 3vh, 34px);
+}
+
+/* the cream sheet's wavy leading edge. --wave-top fills below its own curve, so masking
+   a cream strip with it yields a wavy top without a second recoloured copy of the SVG.
+   The 1px overlap matters: an exact abutment leaves a sub-pixel seam at fractional
+   clamp() values. */
+.panel--invite::before{
+  content:'';
+  position:absolute;
+  left:0; right:0;
+  top: calc(var(--wave-h) * -1 + 1px);
+  height: var(--wave-h);
+  background: var(--cream);
+
+  mask-image: var(--wave-top);
+  mask-repeat: repeat-x;
+  mask-size: var(--wave-wl) var(--wave-h);
+
+  -webkit-mask-image: var(--wave-top);
+  -webkit-mask-repeat: repeat-x;
+  -webkit-mask-size: var(--wave-wl) var(--wave-h);
+}
+
+.intro-stage{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap: clamp(16px, 2.6vh, 30px);
+  opacity: calc(1 - var(--p, 0) * .85);
+  transform: translateY(calc(var(--p, 0) * -6vh)) scale(calc(1 - var(--p, 0) * .06));
+}
+
+.intro-names{ font-size: clamp(43px, 5vw, 72px); }
+
+.intro-line{
+  font-family:'Oswald', sans-serif;
+  font-weight:400;
+  font-size: clamp(18px, 2.1vw, 30px);
+  letter-spacing:.12em;
+}
+
+.intro-and{
+  font-size: clamp(30px, 3.3vw, 48px);
+  color: var(--label);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap: clamp(10px, 1.6vw, 18px);
+  width: clamp(268px, 62vw, 468px);
+}
+
+/* rotations read as hand-placed, echoing the invitation's scattered decorations */
+.tile{
+  position:relative;
+  aspect-ratio:1;
+  border: clamp(4px, .7vw, 8px) solid var(--cream);
+  overflow:hidden;
+}
+.tile:nth-child(1){ transform: rotate(-1.5deg); }
+.tile:nth-child(2){ transform: rotate(1.2deg); }
+.tile:nth-child(3){ transform: rotate(1deg); }
+.tile:nth-child(4){ transform: rotate(-1.2deg); }
+
+.tile img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition: opacity 600ms ease-in-out;
+}
+.tile img.is-shown{ opacity:1; }
+
+.invite-eyebrow{
+  font-family:'Oswald', sans-serif;
+  font-weight:400;
+  font-size: clamp(18px, 2.1vw, 30px);
+  letter-spacing:.12em;
+}
+
+.invite-tag{
+  font-family:'Quicksand', sans-serif;
+  font-weight:600;
+  font-size: clamp(22px, 2.8vw, 40px);
+}
+
+.invited{ font-size: clamp(64px, 7.5vw, 108px); }
+
+/* three layers, so the items genuinely emerge from inside rather than sit on top */
+.envelope{
+  position:relative;
+  width: clamp(280px, 64vw, 520px);
+  aspect-ratio: 78 / 86;
+  margin-inline:auto;
+}
+
+.env-back, .env-front{
+  position:absolute;
+  left:0;
+  bottom:0;
+  width:100%;
+  height:auto;
+}
+.env-back{ z-index:0; }
+.env-front{ z-index:2; }
+
+.pop{
+  position:absolute;
+  z-index:1;
+  height:auto;
+  transform: rotate(var(--rot));
+}
+.pop--strip { left:8%;  bottom:46%; width:26%; }
+.pop--cat1  { left:34%; bottom:62%; width:22%; }
+.pop--cat2  { right:30%; bottom:64%; width:22%; }
+.pop--ticket{ right:6%;  bottom:44%; width:30%; }
