@@ -787,9 +787,10 @@ under `prefers-reduced-motion`.
    base landed state already applies. */
 ```
 
-`.pop{transform:…}` here overrides the `rotate(var(--rot))` set in Task 3 because it is
-declared later at equal specificity. That is intentional: the rotation now arrives with
-`.is-in`, so each item spins slightly as it flies out.
+`.motion .pop{transform:…}` outranks the `rotate(var(--rot))` set in Task 3 on
+specificity, not source order, so the entrance state applies only while the class is
+present. The rotation then arrives with `.is-in`, so each item spins slightly as it flies
+out, and dropping the class returns every item to the landed rule underneath.
 
 - [ ] **Step 2: Write `site/landing.js`**
 
