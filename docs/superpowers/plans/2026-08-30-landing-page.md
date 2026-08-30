@@ -935,9 +935,17 @@ const opacity = (page, sel) => page.evaluate((s) => +getComputedStyle(document.q
   if (at['.intro-and'] - at['.grid'] < 800) {
     bad(`the reveal spans only ${at['.intro-and'] - at['.grid']}ms, so it is not staggered`);
   }
-  for (const sel of seq) {
-    if (await opacity(page, sel) < 0.95) bad(`${sel} did not finish revealing`);
-  }
+  // the probe above records the HALF-opacity crossing, so the last element is still
+  // mid-fade at that moment; poll for the settled state rather than assuming it
+  const settled = await page.evaluate(async (sels) => {
+    const t0 = performance.now();
+    while (performance.now() - t0 < 4000) {
+      if (sels.every((s) => +getComputedStyle(document.querySelector(s)).opacity > 0.99)) return true;
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+    return false;
+  }, seq);
+  if (!settled) bad('the reveal never reached full opacity');
 
   const first = await srcs();
   if (new Set(first).size !== 4) bad('two slots share an image: ' + first.join(','));
