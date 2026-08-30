@@ -23,7 +23,9 @@ One-time setup:
   `node tools/landing-check.mjs` and look at the page.
   - **Photos:** any number from five up. Set `data-pool` on the `.grid` element in
     `site/index.html` to how many `tile-N.png` files exist, numbered from 1 with no gaps.
-    Five or fewer and the grid stays on its opening four instead of cycling.
+    Five or fewer and the grid stays on its opening four instead of cycling. If `data-pool`
+    is missing entirely, the grid also holds still rather than cycling - it never guesses
+    how many photos exist.
   - **Keep `envelope-front.png` at 780x300.** The pocket's top edge - the line every
     envelope item is positioned against - is derived from that aspect ratio. Front art at a
     different ratio moves the edge and silently re-tunes all four items at once. The check

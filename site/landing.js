@@ -36,45 +36,66 @@
 
   var grid = document.querySelector('.grid');
   var POOL = parseInt(grid.getAttribute('data-pool'), 10) || 0;
-  var SLOTS = 4, DWELL = 3500, OFFSET = 900;
+  var SLOTS = 4, DWELL = 3500;
 
-  // which pool image each slot currently holds, so a slot can advance to one no other
-  // slot is showing. Distinctness is maintained by construction, rather than by the
-  // pool happening to be exactly twice the slot count.
-  var current = [0, 1, 2, 3];
+  var tiles = document.querySelectorAll('.tile');
+  var current = [0, 1, 2, 3];   // the pool image each slot is showing
+  var face = [0, 0, 0, 0];      // which of the slot's two img elements is visible
+  var turn = 0;
+  var busy = false;
+  var timer = null;
+  var giveUps = 0;
 
-  function flash(tile, slot) {
-    var imgs = [tile.querySelector('.tile-a'), tile.querySelector('.tile-b')];
-    var shown = 0;
+  // repeated failures mean the photos are not arriving at all; stop re-requesting and
+  // let the grid settle on the still composition the no-script path already renders
+  function strike() {
+    if (++giveUps >= 3) { clearInterval(timer); timer = null; }
+  }
 
-    function advance() {
-      var i = current[slot];
-      do { i = (i + 1) % POOL; } while (current.indexOf(i) !== -1);
+  // One swap at a time, round robin. Four concurrent decodes would let two slots scan
+  // for a free image before either had committed to one, and both take it - which a
+  // megabyte photo on a slow phone hits and a few-KB placeholder never does.
+  function advance() {
+    if (busy) return;   // a slow photo delays the next swap rather than stacking them
 
-      var next = imgs[1 - shown];
-      next.src = 'assets/landing/tile-' + (i + 1) + '.png';
-      next.decode().then(function () {
-        current[slot] = i;
-        imgs[shown].classList.remove('is-shown');
-        next.classList.add('is-shown');
-        shown = 1 - shown;
-      }).catch(function () {
-        // a missing or unreadable photo leaves the current one up; swapping to it
-        // would paint the browser's broken-image glyph inside the frame
-      });
-    }
+    var slot = turn;
+    turn = (turn + 1) % SLOTS;
 
-    setTimeout(function () {
-      advance();
-      setInterval(advance, DWELL);
-    }, DWELL + slot * OFFSET);
+    var i = current[slot];
+    do { i = (i + 1) % POOL; } while (current.indexOf(i) !== -1);
+
+    var imgs = [tiles[slot].querySelector('.tile-a'), tiles[slot].querySelector('.tile-b')];
+    var next = imgs[1 - face[slot]];
+    next.src = 'assets/landing/tile-' + (i + 1) + '.png';
+
+    busy = true;
+    var abandoned = false;
+
+    // long enough that a large photo on a weak connection still lands: re-setting src
+    // cancels the fetch already in flight, so an eager valve makes a slow link slower
+    var valve = setTimeout(function () { abandoned = true; busy = false; strike(); }, 2 * DWELL);
+
+    next.decode().then(function () {
+      clearTimeout(valve);
+      if (abandoned) return;   // the turn has moved on; committing now could claim an
+      giveUps = 0;             // index another slot legitimately holds
+      current[slot] = i;
+      imgs[face[slot]].classList.remove('is-shown');
+      next.classList.add('is-shown');
+      face[slot] = 1 - face[slot];
+      busy = false;
+    }, function () {
+      clearTimeout(valve);
+      if (abandoned) return;
+      busy = false;
+      strike();
+    });
   }
 
   // with no more photos than slots there is nothing free to rotate into, so the grid
   // stays on its opening four
   if (POOL > SLOTS) {
-    var tiles = document.querySelectorAll('.tile');
-    for (var t = 0; t < tiles.length; t++) flash(tiles[t], t);
+    setTimeout(function () { timer = setInterval(advance, DWELL / SLOTS); }, DWELL);
   }
 
   /* --- pinned-panel drift -------------------------------------------------- */

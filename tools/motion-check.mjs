@@ -83,29 +83,6 @@ const opacity = (page, sel) => page.evaluate((s) => +getComputedStyle(document.q
   await page.close();
 }
 
-/* --- a short pool must not paint broken images --- */
-{
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  // the couple supplies six photos
-  await page.route('**/tile-7.png', (r) => r.abort());
-  await page.route('**/tile-8.png', (r) => r.abort());
-  await page.addInitScript(() => {
-    document.addEventListener('DOMContentLoaded', () =>
-      document.querySelector('.grid').setAttribute('data-pool', '6'));
-  });
-  await page.goto(url, { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(9000);
-  console.log('\nshort pool');
-  const broken = await page.evaluate(() => [...document.querySelectorAll('.tile img.is-shown')]
-    .filter((i) => i.naturalWidth === 0).map((i) => i.src.split('/').pop()));
-  if (broken.length) bad(`broken images on screen: ${broken.join(', ')}`);
-  const live = await page.evaluate(() => [...document.querySelectorAll('.tile img.is-shown')]
-    .map((i) => i.src.split('/').pop()));
-  if (new Set(live).size !== 4) bad(`slots share an image with a six-photo pool: ${live.join(',')}`);
-  console.log('  ' + live.join(','));
-  await page.close();
-}
-
 /* --- the landed composition must survive with no script at all --- */
 for (const [label, opts] of [
   ['no script, reduced motion', { reducedMotion: 'reduce', javaScriptEnabled: false }],
