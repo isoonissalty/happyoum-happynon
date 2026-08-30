@@ -622,6 +622,7 @@ for (const width of WIDTHS) {
       seamTop: parseFloat(getComputedStyle(document.querySelector('.panel--invite'), '::before').top),
       waveH: parseFloat(getComputedStyle(document.querySelector('.panel--invite'), '::before').height),
       frontTop: r('.env-front').top,
+      boxH: r('.envelope').height,
       tagBottom: r('.invite-tag').bottom,
       tagLeft: r('.invite-tag').left,
       tagRight: r('.invite-tag').right,
@@ -639,10 +640,14 @@ for (const width of WIDTHS) {
   if (Math.abs(m.seamTop + m.waveH - 1) > 0.6) bad(`seam overlap is ${(m.seamTop + m.waveH).toFixed(2)}px, expected 1`);
   for (const p of m.pops) {
     if (p.left < 0 || p.right > m.winW) bad(`${p.cls} escapes the viewport (${p.left.toFixed(0)}..${p.right.toFixed(0)})`);
-    // the layered envelope only reads if each item both dips behind the pocket and
-    // still shows above it
-    if (p.bottom < m.frontTop + 12) bad(`${p.cls} does not tuck behind the pocket`);
-    if (m.frontTop - p.top < 55) bad(`${p.cls} shows only ${(m.frontTop - p.top).toFixed(0)}px above the pocket`);
+    // The layered envelope only reads if each item both dips behind the pocket and
+    // still shows above it. Both bounds are fractions of the envelope, not pixels:
+    // the envelope hits its clamp() floor on mobile at 54% of its desktop size, so a
+    // fixed pixel bound is twice as strict there for a composition that is identical.
+    const tuck = (p.bottom - m.frontTop) / m.boxH;
+    const show = (m.frontTop - p.top) / m.boxH;
+    if (tuck < 0.03) bad(`${p.cls} tucks only ${(tuck * 100).toFixed(1)}% behind the pocket`);
+    if (show < 0.15) bad(`${p.cls} shows only ${(show * 100).toFixed(1)}% above the pocket`);
     const clearsTag = p.top > m.tagBottom + 8 || p.right < m.tagLeft || p.left > m.tagRight;
     if (!clearsTag) bad(`${p.cls} overlaps the hashtag`);
   }

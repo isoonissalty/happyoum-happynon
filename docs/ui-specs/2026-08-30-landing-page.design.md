@@ -256,10 +256,14 @@ properties. Percentage positions keep the arrangement intact as the envelope sca
 the envelope. Each pair points its item back toward the envelope mouth - down and inward.
 
 Placement is bounded by two lines, and both were measured rather than estimated. Every
-item's bottom must fall at least 12px BELOW the front pocket's top edge, so the pocket
-genuinely occludes it; and at least 55px of each item must show ABOVE that edge, or the
-item reads as buried. An item must also clear the `.invite-tag` box entirely. Verified at
-390 / 768 / 1440 / 1920.
+item must dip at least **3% of the envelope's height** BELOW the front pocket's top edge,
+so the pocket genuinely occludes it, and at least **15%** of that height must show ABOVE
+the edge, or the item reads as buried. An item must also clear the `.invite-tag` box
+entirely. Verified at 390 / 768 / 1440 / 1920.
+
+Both bounds are fractions of the envelope rather than pixel counts. The envelope hits its
+`clamp()` floor of 280px on a 390px viewport - 54% of its desktop size - so a fixed pixel
+bound is twice as strict on mobile for a composition that is proportionally identical.
 
 ```css
 .pop{
