@@ -39,6 +39,12 @@ Standing constraints settled while charting:
 
 <!-- one line per closed ticket -->
 
+- [How the invitation spends width](issues/08-invitation-width.md) - the invitation
+  follows the mock at desktop: the `>=1200` timeline block is gone, the page is the 720px
+  column in a card tracking `--card-inset`, and the card caps at the mock's 1264px from
+  1440. The design file the user sent is byte-identical to the repo's oracle. Hashtag stays
+  `#happyoumhappynon` and the buttons stay. `CONTEXT.md` updated.
+
 ## Not yet specified
 
 - **The per-section screenshot feedback.** The user is walking the landing section by
@@ -46,7 +52,8 @@ Standing constraints settled while charting:
   likely graduate into more of them. Nothing here can sharpen until it arrives.
 - **How far the visual fix reaches.** Whether the fix lives in `landing.css` alone or has
   to reach `base.css`, and whether the invitation moves with it, is downstream of what the
-  visual direction turns out to be.
+  visual direction turns out to be. Ticket 08 landed without touching `base.css`, so the
+  first change to reach it re-runs `tools/regress.mjs` on the other page.
 - **Whether the invite panel needs work too.** Only the intro panel has been diagnosed.
   The invite panel reads calm against it, but it has not had the user's eye on it yet.
 - **The share image.** A dedicated 1200x630 image is wanted, but its art is downstream of
@@ -60,4 +67,7 @@ Standing constraints settled while charting:
 - **A Thai-language site.** Would mean re-picking every typeface and re-tuning the layout
   around different metrics. A separate effort if it ever happens.
 - **Redesigning the invitation.** In scope only if the visual direction forces it, which
-  is tracked as fog above rather than assumed here.
+  is tracked as fog above rather than assumed here. The one carve-out is the invitation's
+  behaviour across widths it does not currently use - the 768-1199 band and the unbounded
+  card at the wide end - resolved as ticket 08 by following the mock. Its one leftover, the
+  desktop scatter density, is ticket 09: fidelity to the mock, not a redesign.

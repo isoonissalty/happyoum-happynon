@@ -24,8 +24,12 @@ dress code, agenda, venue, RSVP. One long cream card on the striped ground.
 ## Striped ground
 
 The mint/lavender vertical stripe from `base.css`, shared by both pages. Its **role**
-differs per page and the distinction matters: a ~20px frame around the invitation's card,
-but the full stage behind the intro panel.
+differs per page and the distinction matters: a frame around the invitation's card, but
+the full stage behind the intro panel.
+
+The frame is only a frame up to 1440. It runs ~20px on a phone and tracks `--card-inset`
+to 88px at the mock's 1440, where the invitation's card caps at 1264px. Past that the band
+keeps widening with the window and the stripe becomes a stage on a wide monitor.
 
 ## Tile / pool
 
