@@ -59,6 +59,9 @@ Standing constraints settled while charting:
 - [Landing copy](issues/11-landing-copy.md) - names / ARE GETTING MARRIED / and you are /
   envelope / invited!! / button / hashtag sign-off, entering in reading order.
 
+- [Invitation card max-width 1024px](issues/12-invitation-card-1024.md) - the user's
+  number, replacing 08's 1264; bites from a 1166px window, decorations still clear the wave.
+
 ## Not yet specified
 
 - **How far the visual fix reaches.** Whether the fix lives in `landing.css` alone or has

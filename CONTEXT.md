@@ -25,9 +25,9 @@ The mint/lavender vertical stripe from `base.css`, shared by both pages, and on 
 frame around a cream **card** - the wavy-edged outline that also lives in `base.css`. The
 landing's card fills the viewport; the invitation's runs the length of the page.
 
-On the invitation the frame is only a frame up to 1440. It runs ~20px on a phone and tracks `--card-inset`
-to 88px at the mock's 1440, where the invitation's card caps at 1264px. Past that the band
-keeps widening with the window and the stripe becomes a stage on a wide monitor.
+On the invitation the frame is only a frame up to a 1166px window. It runs ~20px on a
+phone and tracks `--card-inset` to 71px there, where the card caps at 1024px. Past that
+the band keeps widening with the window and the stripe becomes a stage on a wide monitor.
 
 ## Envelope items
 

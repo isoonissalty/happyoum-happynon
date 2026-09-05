@@ -200,16 +200,16 @@ h1.script{
   .deco--sm{ display:none; }
 }
 
-/* the mock is a 1440 poster: a 720px column centred in a 1264px card, with the
-   width going to the decoration bands. That is the top end - a wider window gets
-   more stripe, never more cream, so the ground widens from a frame into a stage
-   (see CONTEXT.md). Scoped to where the cap always bites: margin-inline:auto
-   replaces the --card-inset margins, so on a narrower window it would zero them.
-   The cap is a literal - a max-width computed from --card-inset lands a fraction
-   of a pixel off the margin path, enough to shift the wave mask. */
-@media (min-width:1440px){
+/* the card caps at 1024px - the user's call, narrower than the mock's 1264 - so the
+   width past that goes to stripe, never to cream, and the ground widens from a frame
+   into a stage (see CONTEXT.md). The 720px column leaves a 152px band a side, which the
+   widest decoration still clears by 52px. Scoped to where the cap always bites, a 1166px
+   window: margin-inline:auto replaces the --card-inset margins, so on a narrower window
+   it would zero them. The cap is a literal - a max-width computed from --card-inset lands
+   a fraction of a pixel off the margin path, enough to shift the wave mask. */
+@media (min-width:1167px){
   .card{
-    max-width: 1264px;
+    max-width: 1024px;
     margin-inline: auto;
   }
 }

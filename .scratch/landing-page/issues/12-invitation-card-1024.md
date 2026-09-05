@@ -1,7 +1,7 @@
 # Invitation inner card max-width 1024px
 
 Type: task
-Status: open
+Status: resolved
 
 ## Question
 
@@ -33,3 +33,16 @@ it would zero them. Keep the cap a literal, per 08.
 `tools/regress.mjs` baseline vs current: landing identical at every width, invitation
 identical at 390 through 1100, differs from 1199 up. Card measures 1024 at 1199, 1440
 and 1920 with no horizontal scroll.
+
+## Answer
+
+Built 2026-09-05. `.card{ max-width:1024px; margin-inline:auto }` inside
+`@media (min-width:1167px)` in `site/styles.css`, replacing 08's 1264 rule at 1440.
+
+Measured card width: 965.8 at 1100, 1023.8 at 1166, 1024.0 from 1167 up; the margin
+steps 71.1 to 71.5px across the threshold, so there is no visible cliff. No horizontal
+scroll at any width. `tools/regress.mjs` against the pre-change tree: invitation identical
+at 390 through 1100, differs at 1199, 1440 and 1920 as intended. Every decoration sits
+inside the band clear of the wave at 1440 by eye.
+
+`CONTEXT.md` striped-ground entry now says the frame becomes a stage from a 1166px window.
