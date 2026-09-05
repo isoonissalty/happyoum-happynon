@@ -4,15 +4,13 @@ Glossary for the Oum & Non wedding site.
 
 ## Landing
 
-`site/index.html`, served at `/`. The cover: names, photo grid, and the envelope that
-opens. Deliberately withholds the date and venue - those are the invitation's job.
+`site/index.html`, served at `/`. The cover: one cream card on the striped ground holding
+the names, the envelope that opens, and the button through to the invitation. Deliberately
+withholds the date and venue - those are the invitation's job.
 
-Two full-height panels, referred to by number:
-
-- **Intro panel** (panel 1) - `.panel--intro`. Names, the photo grid, "ARE GETTING
-  MARRIED". Sits directly on the striped ground with no cream card beneath it.
-- **Invite panel** (panel 2) - `.panel--invite`. Cream ground, the hashtag, the envelope,
-  and the button through to the invitation.
+A single **panel**, `.panel`, sized to fit one screen at every window size the checks
+cover. The earlier two-panel landing (a photo-grid tease that a cream sheet slid over) was
+retired on 2026-09-05 at the user's request.
 
 Not "home page" or "first page" - both are ambiguous between this and the invitation.
 
@@ -23,24 +21,17 @@ dress code, agenda, venue, RSVP. One long cream card on the striped ground.
 
 ## Striped ground
 
-The mint/lavender vertical stripe from `base.css`, shared by both pages. Its **role**
-differs per page and the distinction matters: a frame around the invitation's card, but
-the full stage behind the intro panel.
+The mint/lavender vertical stripe from `base.css`, shared by both pages, and on both a
+frame around a cream **card** - the wavy-edged outline that also lives in `base.css`. The
+landing's card fills the viewport; the invitation's runs the length of the page.
 
-The frame is only a frame up to 1440. It runs ~20px on a phone and tracks `--card-inset`
+On the invitation the frame is only a frame up to 1440. It runs ~20px on a phone and tracks `--card-inset`
 to 88px at the mock's 1440, where the invitation's card caps at 1264px. Past that the band
 keeps widening with the window and the stripe becomes a stage on a wide monitor.
 
-## Tile / pool
-
-A **tile** is one of the four photo slots in the intro panel's grid. The **pool** is the
-set of `tile-N.png` files the slots cycle through, declared as `data-pool` on `.grid`.
-Pool size drives behaviour: under four breaks the grid, exactly four holds still, five or
-more cycles.
-
 ## Envelope items
 
-The four things that pop out of the envelope in the invite panel: photo strip, two cat
+The four things that pop out of the envelope on the landing: photo strip, two cat
 heads, ticket. Positioned against the pocket's top edge, which is derived from
 `envelope-front.png`'s aspect ratio.
 

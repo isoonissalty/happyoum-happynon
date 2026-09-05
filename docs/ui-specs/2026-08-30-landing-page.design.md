@@ -1,5 +1,10 @@
 # UI Spec - Oum & Non Landing Page
 
+> **Superseded 2026-09-05.** The two-panel landing this spec describes was replaced by a
+> single cream card holding the envelope; panel 1, the photo grid, the tile flash and the
+> parallax are gone. `CONTEXT.md` describes the page as built. The envelope section below
+> (layers, popped-item placement, the `.motion` gate, reduced motion) still applies.
+
 **Wireframe:** `docs/ui-specs/assets/landing-page.png`
 **Structural approach:** A - "cream panel slides up over the stripes".
 Approaches B and C are recorded in `2026-08-30-landing-page.alternatives.md`.

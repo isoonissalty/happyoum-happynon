@@ -1,7 +1,7 @@
 # Landing collapses to one panel
 
 Type: task
-Status: open
+Status: resolved
 
 ## Question
 
@@ -41,3 +41,25 @@ card treatment, so it is the default here. The user can flip it on sight.
 
 `landing-check.mjs` and `motion-check.mjs` pass against the new page, the landing is one
 viewport at the nine sizes with nothing clipped, and the envelope still pops once on load.
+
+## Answer
+
+Built 2026-09-05. The landing is one `.card` on the stripe, using the invitation's wavy
+outline, which moved verbatim from `styles.css` into `base.css` (`tools/regress.mjs`:
+invitation identical at all eight widths). The card fills the viewport with a
+`clamp(12px, 2.5svh, 40px)` vertical inset and `--card-inset` at the sides.
+
+Every vertical measure carries an svh term, and a `max-height: 700px` block trades
+envelope size for fit on short windows. Measured: the cover fits one screen at eight of
+the nine `landing-check.mjs` sizes; phone landscape (844x390) scrolls 7px, which the
+check tolerates below 560px tall.
+
+Removed: the intro panel, the photo grid and its tile flash, `pool-check.mjs`, the
+`tile-*.png` placeholders, the sticky parallax and the cream sheet's wavy seam. The
+envelope pop now fires on a 1.3s timer rather than an intersection observer, since it is
+above the fold. One fix that fell out: the pop transition moved from `.pop` to
+`.pop.is-in`, because on `.pop` it animated the flip into the hidden state when the
+script added `.motion`, visible now that the envelope is on screen at load.
+
+`CONTEXT.md` Landing and Striped ground entries rewritten, Tile / pool entry removed;
+`tools/README.md` and the 2026-08-30 design doc carry a superseded note.

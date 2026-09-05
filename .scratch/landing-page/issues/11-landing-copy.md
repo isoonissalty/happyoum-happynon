@@ -1,7 +1,7 @@
 # Landing copy for one panel
 
 Type: task
-Status: open
+Status: resolved
 Blocked by: 10
 
 ## Question
@@ -29,3 +29,12 @@ English only, per the map's standing constraint. The landing still withholds the
 The panel reads top to bottom as one sentence, fits one viewport at the nine
 `landing-check.mjs` sizes, and the entrance stagger in `motion-check.mjs` covers the new
 lines in reading order.
+
+## Answer
+
+Built with 10, 2026-09-05, as proposed: names / ARE GETTING MARRIED / and you are /
+envelope / invited!! / button / hashtag as a small sign-off in `--label`. The entrance runs
+in that order - names at 0.15s, line 0.45s, lead 0.75s, pop at 1.3s, invited 2s, button
+2.3s, hashtag 2.5s - and `motion-check.mjs` asserts the order and a spread of at least
+1.5s. Measured reveal at 1440x900: names 423ms, line 723, lead 1023, first pop 1407,
+invited 2274, button 2573, hashtag 2773.

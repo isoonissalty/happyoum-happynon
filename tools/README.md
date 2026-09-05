@@ -8,12 +8,11 @@ no build step. Install once:
 Then, from the repo root:
 
     node tools/landing-check.mjs   # landing page geometry at nine viewports
-    node tools/motion-check.mjs    # the entrance, the tile flash, and the no-script fallback
-    node tools/pool-check.mjs      # the photo grid at pool sizes 3 through 8, with data-pool missing, and under a slow connection
+    node tools/motion-check.mjs    # the entrance order, the pop, and the no-script fallback
 
 `landing-check.mjs` is the one to run after swapping in real art: it holds every envelope
-item to the pocket edge and to the hashtag, and holds the intro to a single viewport at
-nine window sizes including short laptops.
+item to the pocket edge and clear of the lead-in line, and holds the whole cover to a
+single viewport at nine window sizes including short laptops.
 
 `regress.mjs` compares two rendered pages and takes both URLs:
 

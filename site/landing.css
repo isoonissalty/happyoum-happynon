@@ -1,125 +1,63 @@
-/* base.css sets overflow-x:hidden. A hidden value on either axis makes the element a
-   scroll container, which silently disables position:sticky on the panels below;
-   clip suppresses the same overflow without creating one. */
-body{ overflow-x: clip; }
+/* One cream card on the striped ground, the envelope as the cover. The card is the
+   invitation's own outline from base.css; here it fills the viewport instead of
+   running the length of a page. */
+
+/* every vertical measure carries an svh term: the whole cover has to fit one screen,
+   and the same composition that is roomy on a phone overflows a short laptop window
+   sized off vw alone */
+.card{
+  margin: clamp(12px, 2.5svh, 40px) var(--card-inset);
+  min-height: calc(100svh - 2 * clamp(12px, 2.5svh, 40px));
+  display:flex;
+}
+
+.card-inner{ flex:1; display:flex; }
 
 .panel{
+  flex:1;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  padding-inline: clamp(16px, 5vw, 48px);
+  /* the waves eat into the card from both ends, and the bottom one is the larger,
+     so each padding clears its own wave band before adding breathing room */
+  padding: calc(var(--wave-h) + clamp(8px, 2svh, 32px))
+           clamp(16px, 5vw, 48px)
+           calc(var(--wave-hb) + clamp(8px, 2svh, 32px));
+  gap: clamp(6px, 1.2svh, 20px);
 }
 
-/* the parallax: the intro pins, and the cream sheet rides up over it */
-.panel--intro{ position:sticky; top:0; height:100svh; z-index:0; }
+.names{ font-size: min(clamp(43px, 5vw, 72px), 7.5svh); }
 
-.panel--invite{
-  position:relative;
-  z-index:1;
-  min-height:100svh;
-  background: var(--cream);
-  padding-block: clamp(56px, 9vh, 110px);
-  gap: clamp(18px, 3vh, 34px);
-}
-
-/* the cream sheet's wavy leading edge. --wave-top fills below its own curve, so masking
-   a cream strip with it yields a wavy top without a second recoloured copy of the SVG.
-   The 1px overlap matters: an exact abutment leaves a sub-pixel seam at fractional
-   clamp() values. */
-.panel--invite::before{
-  content:'';
-  position:absolute;
-  left:0; right:0;
-  top: calc(var(--wave-h) * -1 + 1px);
-  height: var(--wave-h);
-  background: var(--cream);
-
-  mask-image: var(--wave-top);
-  mask-repeat: repeat-x;
-  mask-size: var(--wave-wl) var(--wave-h);
-
-  -webkit-mask-image: var(--wave-top);
-  -webkit-mask-repeat: repeat-x;
-  -webkit-mask-size: var(--wave-wl) var(--wave-h);
-}
-
-.intro-stage{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap: clamp(10px, 2.2vh, 30px);
-  opacity: calc(1 - var(--p, 0) * .85);
-  transform: translateY(calc(var(--p, 0) * -6vh)) scale(calc(1 - var(--p, 0) * .06));
-}
-
-.intro-names{ font-size: clamp(43px, 5vw, 72px); }
-
-.intro-line{
+.line{
   font-family:'Oswald', sans-serif;
   font-weight:400;
-  font-size: clamp(18px, 2.1vw, 30px);
+  font-size: min(clamp(16px, 2vw, 26px), 3svh);
   letter-spacing:.12em;
 }
 
-.intro-and{
-  font-size: clamp(30px, 3.3vw, 48px);
+.lead{
+  font-size: min(clamp(30px, 3.3vw, 48px), 5svh);
   color: var(--label);
 }
 
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap: clamp(10px, 1.6vw, 18px);
-  /* the panel is exactly one viewport tall, so the grid has to answer to height as
-     well as width - sized off vw alone it overflows a short laptop window, and that
-     overflow hides at both ends: clipped above, buried under the cream panel below */
-  width: min(clamp(268px, 62vw, 468px), 52vh);
-}
+.invited{ font-size: min(clamp(56px, 6.5vw, 96px), 9svh); }
 
-/* rotations read as hand-placed, echoing the invitation's scattered decorations */
-.tile{
-  position:relative;
-  aspect-ratio:1;
-  border: clamp(4px, .7vw, 8px) solid var(--cream);
-  overflow:hidden;
-  background: var(--cream);
-}
-.tile:nth-child(1){ transform: rotate(-1.5deg); }
-.tile:nth-child(2){ transform: rotate(1.2deg); }
-.tile:nth-child(3){ transform: rotate(1deg); }
-.tile:nth-child(4){ transform: rotate(-1.2deg); }
+/* the shared button's fixed padding is the one measure here with no svh term */
+.panel .btn{ padding-block: min(16px, 2.2svh); }
 
-.tile img{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  opacity:0;
-  transition: opacity 600ms ease-in-out;
-}
-.tile img.is-shown{ opacity:1; }
-
-.invite-eyebrow{
-  font-family:'Oswald', sans-serif;
-  font-weight:400;
-  font-size: clamp(18px, 2.1vw, 30px);
-  letter-spacing:.12em;
-}
-
-.invite-tag{
+.tag{
   font-family:'Quicksand', sans-serif;
   font-weight:600;
-  font-size: clamp(22px, 2.8vw, 40px);
+  font-size: clamp(14px, 1.4vw, 20px);
+  color: var(--label);
 }
-
-.invited{ font-size: clamp(64px, 7.5vw, 108px); }
 
 /* three layers, so the items genuinely emerge from inside rather than sit on top */
 .envelope{
   position:relative;
-  width: clamp(280px, 64vw, 520px);
+  /* the aspect ratio is 78/86, so 35svh of height is 31.7svh of width */
+  width: min(clamp(260px, 60vw, 520px), 31.7svh);
   aspect-ratio: 78 / 86;
   margin-inline:auto;
 }
@@ -159,45 +97,54 @@ body{ overflow-x: clip; }
   to  { opacity:1; transform:none; }
 }
 
-@keyframes bob{
-  0%, 100%{ transform:none; }
-  50%     { transform: translateY(8px); }
-}
-
-/* the grid is the thing already on screen; the text arrives after it */
-.grid       { opacity:0; animation: rise .8s ease-out .15s forwards; }
-.intro-names{ opacity:0; animation: rise .8s ease-out 1s forwards; }
-.intro-line { opacity:0; animation: rise .8s ease-out 1.2s forwards; }
-.intro-and  { opacity:0; animation: rise .8s ease-out 1.8s forwards,
-                                    bob 2.4s ease-in-out 2.6s infinite; }
+/* the cover reads top to bottom as one sentence, so it arrives in that order: the
+   envelope is on screen with the names, the items pop once the lead-in has landed
+   (landing.js fires them at 1.3s), and the payoff follows the pop */
+.names  { opacity:0; animation: rise .8s ease-out .15s forwards; }
+.line   { opacity:0; animation: rise .8s ease-out .45s forwards; }
+.lead   { opacity:0; animation: rise .8s ease-out .75s forwards; }
+.envelope{ opacity:0; animation: rise .8s ease-out .15s forwards; }
+.invited{ opacity:0; animation: rise .8s ease-out 2s forwards; }
+.btn    { opacity:0; animation: rise .8s ease-out 2.3s forwards; }
+.tag    { opacity:0; animation: rise .8s ease-out 2.5s forwards; }
 
 /* The entrance state is gated on .motion, which landing.js adds to <html> when it
    runs. The LANDED composition is therefore what the page renders by default, so a
    blocked script, a 404 on landing.js, or scripting off entirely all leave the
-   envelope full rather than empty. Every .motion-gated element sits in panel 2,
-   below the fold, and a deferred script runs within milliseconds of parse, so the
-   class lands long before any of them can be scrolled into view. */
+   envelope full rather than empty. */
 .motion .pop{
   transform: translate(var(--ox), var(--oy)) scale(.2);
   opacity:0;
-  transition: transform 620ms var(--pop-ease) var(--delay),
-              opacity 280ms ease-out var(--delay);
 }
+/* the transition rides on .is-in alone: on .pop it would also animate the flip INTO
+   the entrance state when the script adds .motion, and with the envelope above the
+   fold that reads as the items fading out before they pop */
 .motion .pop.is-in{
   transform: translate(0, 0) scale(1) rotate(var(--rot));
   opacity:1;
+  transition: transform 620ms var(--pop-ease) var(--delay),
+              opacity 280ms ease-out var(--delay);
 }
 
 /* the page is entirely motion, so reduced motion needs the finished composition
    on load - not a disabled page */
 @media (prefers-reduced-motion: reduce){
-  .grid, .intro-names, .intro-line, .intro-and{
+  .names, .line, .lead, .envelope, .invited, .btn, .tag{
     opacity:1;
     animation:none;
     transform:none;
   }
-  .intro-stage{ opacity:1; transform:none; }
-  .tile img{ transition:none; }
+}
+
+/* a short window - a laptop with browser chrome, a phone on its side - trades envelope
+   size for the whole cover staying on one screen; on anything taller the svh terms
+   above already leave room */
+@media (max-height: 700px){
+  .panel{ gap: clamp(4px, 1svh, 20px); }
+  .names{ font-size: min(clamp(43px, 5vw, 72px), 7svh); }
+  .invited{ font-size: min(clamp(56px, 6.5vw, 96px), 8.5svh); }
+  /* 30svh of height */
+  .envelope{ width: min(clamp(260px, 60vw, 520px), 27.2svh); }
 }
 
 /* .pop needs no rule here: landing.js never adds .motion under reduced motion, so the

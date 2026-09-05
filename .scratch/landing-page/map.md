@@ -53,14 +53,20 @@ Standing constraints settled while charting:
   ([13](issues/13-invitation-deco-motion.md)), and both pages get a full pass of
   micro-interactions ([14](issues/14-micro-interactions.md)).
 
+- [Landing collapses to one panel](issues/10-landing-single-panel.md) - one cream card
+  with the invitation's wavy outline, now shared from `base.css`; the envelope pops on a
+  timer above the fold. Grid, tile flash, parallax and `pool-check.mjs` are gone.
+- [Landing copy](issues/11-landing-copy.md) - names / ARE GETTING MARRIED / and you are /
+  envelope / invited!! / button / hashtag sign-off, entering in reading order.
+
 ## Not yet specified
 
 - **How far the visual fix reaches.** Whether the fix lives in `landing.css` alone or has
   to reach `base.css`, and whether the invitation moves with it, is downstream of what the
   visual direction turns out to be. Ticket 08 landed without touching `base.css`, so the
   first change to reach it re-runs `tools/regress.mjs` on the other page.
-- **How the single cream panel meets the stripe.** Edge to edge, or a card on the stripe
-  like the invitation. Ticket 10 defaults to the card and the user rules on sight.
+- **How the single cream panel meets the stripe.** Ticket 10 built it as a card on the
+  stripe, matching the invitation. The user has not yet ruled on it by eye.
 - **The share image.** A dedicated 1200x630 image is wanted, but its art is downstream of
   the visual direction.
 
