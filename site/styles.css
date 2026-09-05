@@ -200,6 +200,47 @@ h1.script{
   .deco--sm{ display:none; }
 }
 
+/* ---------------------------------------------------------------------------
+   Decoration motion. Each piece grows in once as it scrolls into view, then
+   drifts - a slow swing of a few degrees with a faint breathe - so the scatter
+   never sits dead still. Both ride the individual `scale` and `rotate`
+   properties, which compose with the inline `transform: rotate()` each piece
+   carries; animating `transform` itself would wipe that placement.
+
+   The entrance is a transition and the drift an animation, on purpose: an
+   animation on `scale` would override a transition on it, so the two have to
+   split the property. The drift starts where the entrance ends and its
+   keyframes begin at rest, so there is no snap at the handover.
+
+   Gated on .motion, which invitation.js adds, so a blocked script renders the
+   finished scatter rather than an empty one.
+   --------------------------------------------------------------------------- */
+@keyframes deco-drift{
+  0%   { rotate: 0deg;  scale: 1; }
+  25%  { rotate: 4deg;  scale: 1.05; }
+  75%  { rotate: -4deg; scale: 1; }
+  100% { rotate: 0deg;  scale: 1; }
+}
+
+/* three periods and three entrance offsets, cycled by position in the section, so
+   neighbours never move in step and the field drifts out of phase over time */
+.deco:nth-of-type(3n+1){ --dur: 9s;  --delay: 0ms;   }
+.deco:nth-of-type(3n+2){ --dur: 12s; --delay: 140ms; animation-direction: reverse; }
+.deco:nth-of-type(3n)  { --dur: 15s; --delay: 280ms; }
+
+.motion .deco{
+  scale: 0;
+  opacity: 0;
+}
+
+.motion .deco.is-in{
+  scale: 1;
+  opacity: 1;
+  transition: scale 900ms var(--pop-ease) var(--delay),
+              opacity 400ms ease-out var(--delay);
+  animation: deco-drift var(--dur) ease-in-out calc(900ms + var(--delay)) infinite;
+}
+
 /* the card caps at 1024px - the user's call, narrower than the mock's 1264 - so the
    width past that goes to stripe, never to cream, and the ground widens from a frame
    into a stage (see CONTEXT.md). The 720px column leaves a 152px band a side, which the

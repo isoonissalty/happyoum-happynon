@@ -62,6 +62,10 @@ Standing constraints settled while charting:
 - [Invitation card max-width 1024px](issues/12-invitation-card-1024.md) - the user's
   number, replacing 08's 1264; bites from a 1166px window, decorations still clear the wave.
 
+- [Invitation decorations grow in and turn](issues/13-invitation-deco-motion.md) - the
+  invitation gains its first script; pieces scale in once on scroll and drift on
+  `rotate`/`scale`, static under reduced motion and without the script.
+
 ## Not yet specified
 
 - **How far the visual fix reaches.** Whether the fix lives in `landing.css` alone or has
