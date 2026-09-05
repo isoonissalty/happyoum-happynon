@@ -7,7 +7,7 @@ let fail = 0;
 const bad = (m) => { console.log('  FAIL ' + m); fail++; };
 const opacity = (page, sel) => page.evaluate((s) => +getComputedStyle(document.querySelector(s)).opacity, sel);
 
-const POPS = ['.pop--strip', '.pop--cat1', '.pop--cat2', '.pop--ticket'];
+const POPS = ['.pop--strip1', '.pop--strip2', '.pop--cats', '.pop--ticket'];
 
 /* --- full motion --- */
 {
@@ -22,7 +22,7 @@ const POPS = ['.pop--strip', '.pop--cat1', '.pop--cat2', '.pop--ticket'];
   // SPREAD. Both are differences against one clock, so any offset between navigation
   // and first paint cancels out instead of becoming a flaky threshold. The cover reads
   // as one sentence, so it has to arrive in reading order with the pop in the middle.
-  const seq = ['.names', '.line', '.lead', '.pop--strip', '.invited', '.btn', '.tag'];
+  const seq = ['.names', '.line', '.lead', '.pop--strip1', '.invited', '.btn', '.tag'];
   const at = await page.evaluate(async (sels) => {
     const seen = {};
     const t0 = performance.now();
@@ -83,7 +83,7 @@ for (const [label, opts] of [
   await page.waitForTimeout(250);
   console.log('\nreduced motion');
 
-  for (const sel of ['.names', '.line', '.lead', '.envelope', '.invited', '.btn', '.tag', '.pop--strip', '.pop--ticket']) {
+  for (const sel of ['.names', '.line', '.lead', '.envelope', '.invited', '.btn', '.tag', ...POPS]) {
     if (await opacity(page, sel) < 0.99) bad(`${sel} is not visible on load`);
   }
   await page.close();
