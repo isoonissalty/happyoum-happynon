@@ -1,7 +1,7 @@
 # Intro panel visual direction
 
 Type: prototype
-Status: open
+Status: resolved
 
 ## Question
 
@@ -32,3 +32,8 @@ section by section and that feedback is this ticket's real input.
 Constraints: keep the change in `landing.css` if it can be done there. If a candidate
 needs `base.css`, say so explicitly, because the invitation shares it and would need
 `tools/regress.mjs` run against it.
+
+## Answer
+
+Superseded on 2026-09-05. The user removed the intro panel altogether - see
+[10](10-landing-single-panel.md). Nothing here applies to a landing with no photo grid.

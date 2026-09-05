@@ -1,7 +1,7 @@
 # Art brief: photo tiles
 
 Type: task
-Status: open
+Status: resolved
 Blocked by: 01, 02
 
 ## Question
@@ -23,3 +23,8 @@ element: a cream card behind them, a border treatment, or a different grid shape
 change the crop and the tonal range the photos need to sit in.
 
 Done when the partner can select and crop from the ~20 without a second pass.
+
+## Answer
+
+Superseded on 2026-09-05. The user removed the intro panel altogether - see
+[10](10-landing-single-panel.md). Nothing here applies to a landing with no photo grid.

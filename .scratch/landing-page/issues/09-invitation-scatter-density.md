@@ -20,3 +20,9 @@ band is 190px. A prototype at 1200, 1440 and 1920 is the cheapest way to react t
 
 The mock also uses a yellow star and a red-orange star that have no asset; the design doc
 says reuse existing pieces, never recolor with CSS filters.
+
+## Comments
+
+2026-09-05: ticket 12 caps the card at 1024px, so the band this ticket measured as 272px
+at 1440 is now 152px. Re-measure against the mock before prototyping; the gap may be
+small enough to close by nudging the existing pieces outward.

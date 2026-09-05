@@ -2,7 +2,7 @@
 
 Type: task
 Status: open
-Blocked by: 03, 04
+Blocked by: 03
 
 ## Question
 
@@ -21,3 +21,9 @@ as affectionate or as one eating the other.
 
 Done when all three checks pass against real art and the page has been looked at on a real
 phone.
+
+## Comments
+
+2026-09-05: the pool is gone with the intro panel (ticket 10). Only the envelope art
+remains to swap in, so this ticket is now blocked by 03 alone and `pool-check.mjs` no
+longer exists to run.

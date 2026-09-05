@@ -1,7 +1,7 @@
 # Intro panel layout balance
 
 Type: prototype
-Status: open
+Status: resolved
 Blocked by: 01
 
 ## Question
@@ -25,3 +25,8 @@ that ticket picks - a cream card changes the available space and the margins.
 Whatever is chosen must still pass `tools/landing-check.mjs`, which holds the intro to a
 single viewport at nine window sizes including short laptops. That check passing is the
 constraint the composition has to live inside, not an afterthought.
+
+## Answer
+
+Superseded on 2026-09-05. The user removed the intro panel altogether - see
+[10](10-landing-single-panel.md). Nothing here applies to a landing with no photo grid.

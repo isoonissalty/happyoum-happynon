@@ -45,17 +45,22 @@ Standing constraints settled while charting:
   1440. The design file the user sent is byte-identical to the repo's oracle. Hashtag stays
   `#happyoumhappynon` and the buttons stay. `CONTEXT.md` updated.
 
+- **The user's feedback arrived, 2026-09-05**, and it retired the intro panel outright:
+  tickets 01, 02 and 04 are superseded by [10](issues/10-landing-single-panel.md). The
+  landing becomes one panel with the envelope as the cover; its copy is
+  [11](issues/11-landing-copy.md). The invitation's card caps at 1024 instead of 08's 1264
+  ([12](issues/12-invitation-card-1024.md)), its decorations grow in and turn slowly
+  ([13](issues/13-invitation-deco-motion.md)), and both pages get a full pass of
+  micro-interactions ([14](issues/14-micro-interactions.md)).
+
 ## Not yet specified
 
-- **The per-section screenshot feedback.** The user is walking the landing section by
-  section with screenshots. That feedback is the input to the two visual tickets and will
-  likely graduate into more of them. Nothing here can sharpen until it arrives.
 - **How far the visual fix reaches.** Whether the fix lives in `landing.css` alone or has
   to reach `base.css`, and whether the invitation moves with it, is downstream of what the
   visual direction turns out to be. Ticket 08 landed without touching `base.css`, so the
   first change to reach it re-runs `tools/regress.mjs` on the other page.
-- **Whether the invite panel needs work too.** Only the intro panel has been diagnosed.
-  The invite panel reads calm against it, but it has not had the user's eye on it yet.
+- **How the single cream panel meets the stripe.** Edge to edge, or a card on the stripe
+  like the invitation. Ticket 10 defaults to the card and the user rules on sight.
 - **The share image.** A dedicated 1200x630 image is wanted, but its art is downstream of
   the visual direction.
 
