@@ -259,7 +259,7 @@ stripes.
 ### Envelope
 
 ```css
-.envelope{ position:relative; width:clamp(280px, 64vw, 520px); aspect-ratio:78/86; margin-inline:auto; }
+.envelope{ position:relative; width:min(clamp(300px, 74vw, 640px), 40.9svh); aspect-ratio:1176/1136; margin-inline:auto; }
 ```
 
 Three layers, so the items genuinely emerge from inside:
@@ -284,10 +284,10 @@ properties. Percentage positions keep the arrangement intact as the envelope sca
 
 | item | asset | left/right | bottom | width | `--rot` | `--ox` | `--oy` | `--delay` | z |
 |---|---|---|---|---|---|---|---|---|---|
-| photo strip | `photo-strip.png` | `left:5%` | `26%` | `24%` | `-15deg` | `90%` | `56%` | `0ms` | 1 |
-| ticket | `ticket.png` | `right:0%` | `27%` | `40%` | `14deg` | `-60%` | `70%` | `330ms` | 2 |
-| cat head 1 | `cat-head-1.png` | `left:22%` | `29%` | `30%` | `-8deg` | `55%` | `85%` | `110ms` | 3 |
-| cat head 2 | `cat-head-2.png` | `left:40%` | `30%` | `30%` | `9deg` | `15%` | `85%` | `220ms` | 4 |
+| photo strip 1 | `photo-strip-1.jpg` | `left:9%` | `8%` | `23%` | `-12deg` | `90%` | `45%` | `0ms` | 1 |
+| photo strip 2 | `photo-strip-2.jpg` | `left:22%` | `9%` | `23%` | `-5deg` | `50%` | `45%` | `90ms` | 2 |
+| ticket | `ticket.png` | `right:11%` | `30%` | `34%` | `7deg` | `-50%` | `60%` | `330ms` | 3 |
+| cats | `cat_heads.png` | `left:29%` | `37%` | `56%` | `-3deg` | `0%` | `80%` | `200ms` | 4 |
 
 `--ox` / `--oy` are percentages of the item's own box, so the start position scales with
 the envelope. Each pair points its item back toward the envelope mouth - down and inward.
@@ -378,11 +378,11 @@ exact intrinsic sizes, and written into the `<img>` `width`/`height` attributes:
 | file | size | becomes |
 |---|---|---|
 | `tile-1.png` … `tile-8.png` | 600x600 | the couple's photos |
-| `envelope-back.png` | 780x520 | envelope body |
-| `envelope-front.png` | 780x300 | envelope front pocket |
-| `photo-strip.png` | 200x580 | 3-frame photo booth strip |
-| `cat-head-1.png`, `cat-head-2.png` | 240x220 | die-cut cat heads |
-| `ticket.png` | 420x250 | minimal invitation ticket |
+| `envelope-back.png` | 1176x1476 | envelope body, 1176x1136 of paper under a transparent top |
+| `envelope-front.png` | 1176x1114 | envelope flaps and front pocket; clip-pathed to the paper so its transparent top never takes clicks |
+| `photo-strip-1.jpg`, `photo-strip-2.jpg` | 332x1268 | 4-frame photo booth strips, fanned as a pair |
+| `cat_heads.png` | 1040x952 | both die-cut cat heads on one plate |
+| `ticket.png` | 1241x1750 | the invitation card, portrait |
 
 ## Responsive
 

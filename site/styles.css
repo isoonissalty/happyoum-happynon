@@ -62,6 +62,7 @@ h1.script{
   width: clamp(276px, 31.94vw, 460px);
   margin: 0 auto clamp(19px, 2.22vw, 32px);
   display:block;
+  padding-left: 36px;
 }
 
 .names{
