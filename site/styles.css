@@ -4,7 +4,7 @@
 }
 
 .content{
-  max-width: 720px;
+  max-width: 640px;
   margin: 0 auto;
   padding: var(--content-pad-y) 24px;
 }
@@ -55,12 +55,12 @@
 
 h1.script{
   font-size: clamp(77px, 8.89vw, 128px);
-  margin-bottom: clamp(29px, 3.33vw, 48px);
+  margin-bottom: clamp(24px, 2.78vw, 40px);
 }
 
 .locket{
   width: clamp(276px, 31.94vw, 460px);
-  margin: 0 auto clamp(24px, 2.78vw, 40px);
+  margin: 0 auto clamp(19px, 2.22vw, 32px);
   display:block;
 }
 
@@ -75,7 +75,7 @@ h1.script{
   font-size: clamp(14px, 1.67vw, 24px);
   line-height:1.5;
   max-width: clamp(280px, 66.7vw, 480px);
-  margin: 0 auto clamp(34px, 3.89vw, 56px);
+  margin: 0 auto clamp(29px, 3.33vw, 48px);
 }
 
 .date-block{
@@ -111,7 +111,7 @@ h1.script{
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap: clamp(67px, 7.78vw, 112px);
+  gap: clamp(58px, 6.67vw, 96px);
 }
 
 .agenda li{
@@ -205,7 +205,7 @@ h1.script{
   font-family:'Quicksand', sans-serif;
   font-weight:600;
   font-size: clamp(22px, 2.5vw, 36px);
-  margin-top: clamp(24px, 2.78vw, 40px);
+  margin-top: clamp(19px, 2.22vw, 32px);
 }
 
 .address{
@@ -217,7 +217,7 @@ h1.script{
 }
 
 .actions{
-  margin-top: clamp(58px, 6.67vw, 96px);
+  margin-top: clamp(48px, 5.56vw, 80px);
   /* the gap is measured to the top of the bottom wave's band, not to the card
      edge - the wave's crest rises ~7/8 of --wave-hb into the card, so without
      the extra term the buttons sit right on the crest */
@@ -251,7 +251,7 @@ h1.script{
    the card's margin band or off the card entirely (clipped by .card's
    overflow:hidden) - never inside the text column, at any viewport width */
 
-/* below this width .content's 720px cap stops constraining anything (the
+/* below this width .content's 640px cap stops constraining anything (the
    card itself is already narrower), so the margin band is 0 and only the
    smallest decorations are worth showing at all */
 @media (max-width:1199.98px){
@@ -305,8 +305,8 @@ h1.script{
 
 /* the card caps at 1024px - the user's call, narrower than the mock's 1264 - so the
    width past that goes to stripe, never to cream, and the ground widens from a frame
-   into a stage (see CONTEXT.md). The 720px column leaves a 152px band a side, which the
-   widest decoration still clears by 52px. Scoped to where the cap always bites, a 1166px
+   into a stage (see CONTEXT.md). The 640px column leaves a 192px band a side, which the
+   widest decoration still clears by 92px. Scoped to where the cap always bites, a 1166px
    window: margin-inline:auto replaces the --card-inset margins, so on a narrower window
    it would zero them. The cap is a literal - a max-width computed from --card-inset lands
    a fraction of a pixel off the margin path, enough to shift the wave mask. */
