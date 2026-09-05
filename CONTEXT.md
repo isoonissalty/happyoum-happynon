@@ -31,11 +31,12 @@ the band keeps widening with the window and the stripe becomes a stage on a wide
 
 ## Envelope items
 
-The four things that pop out of the envelope on the landing: photo strip, two cat
-heads, ticket. Positioned against the pocket's top edge, which is derived from
-`envelope-front.png`'s aspect ratio.
+The four things that pop out of the envelope on the landing: two photo strips fanned on
+the left, the ticket centre front, the cat heads peeking over its right shoulder.
+Positioned against the front pocket's top edge, a V that `landing-check.mjs` reads off
+`envelope-front.png` itself at each item's column.
 
 ## Art
 
-Hand-drawn assets under `site/assets/`. Everything in `assets/landing/` is currently a
-**placeholder** - a flat labelled rectangle standing in for art that has not been drawn.
+Hand-drawn assets under `site/assets/`. `assets/landing/` holds the real envelope, strips,
+cats and ticket since 2026-09-05.

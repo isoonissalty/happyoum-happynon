@@ -76,7 +76,7 @@ outline-offset:3px }`. The button had no visible keyboard focus.
 stripes behind the card; the text stays `--ink`. A gradient cannot transition, so it lives
 on `.btn::before` at `z-index:-1` and fades in by opacity, with `isolation:isolate` on the
 button so the pseudo element stays inside it rather than dropping behind the card. Hover
-and focus-visible light it on fine pointers; `:active` lights it everywhere, so a tap on a
+lights it on fine pointers; focus-visible and `:active` light it everywhere, so a tap on a
 phone gets the same answer.
 
 **New token,** appended to `:root`:
@@ -404,14 +404,14 @@ exact intrinsic sizes, and written into the `<img>` `width`/`height` attributes:
 | `tile-1.png` … `tile-8.png` | 600x600 | the couple's photos |
 | `envelope-back.png` | 1219x1476 | envelope body, the paper under a transparent top |
 | `envelope-front.png` | 1219x1476 | envelope flaps and front pocket, transparent above the pocket's V edge |
+| `photo-strip-1.jpg`, `photo-strip-2.jpg` | 332x1268 | 4-frame photo booth strips, fanned as a pair |
+| `cat_heads.png` | 1040x952 | both die-cut cat heads on one plate |
+| `ticket.png` | 1241x1750 | the invitation card, portrait |
 
 `landing-check.mjs` reads the pocket's edge off `envelope-front.png` itself, through a
 canvas, at the column under each item's centre: the edge is a V, so the front plate's box
 says nothing about where an item is hidden. Chrome is launched with
 `--allow-file-access-from-files` for it, since a `file://` image otherwise taints the canvas.
-| `photo-strip-1.jpg`, `photo-strip-2.jpg` | 332x1268 | 4-frame photo booth strips, fanned as a pair |
-| `cat_heads.png` | 1040x952 | both die-cut cat heads on one plate |
-| `ticket.png` | 1241x1750 | the invitation card, portrait |
 
 ## Responsive
 

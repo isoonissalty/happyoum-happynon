@@ -95,6 +95,7 @@ for (const [label, opts] of [
    With no pointer to trail, the landing flies the wand itself: a figure of eight across
    the band above the names. The invitation asks for nothing and gets nothing. */
 const TOUCH = { hasTouch: true, isMobile: true };
+const W = 390;
 
 // where the drawn dust sits: every lit canvas pixel's bounding box and centroid, in CSS px
 const lit = (page) => page.evaluate(() => {
@@ -114,7 +115,7 @@ const lit = (page) => page.evaluate(() => {
 });
 
 {
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, ...TOUCH });
+  const page = await browser.newPage({ viewport: { width: W, height: 844 }, ...TOUCH });
   await page.goto(url, { waitUntil: 'domcontentloaded' });
   console.log('\ntouch, landing');
   const coarse = await page.evaluate(() => matchMedia('(hover:none) and (pointer:coarse)').matches);
@@ -123,7 +124,7 @@ const lit = (page) => page.evaluate(() => {
   // Only the last second or so of the path is lit at any instant, so one frame shows a
   // lobe, not the figure. Sample across a lap: the wand must never go dark, must visit
   // both lobes, and must keep its weight in the band above the names.
-  const band = await page.$eval('.names', (el) => el.getBoundingClientRect().top);
+  const namesTop = await page.$eval('.names', (el) => el.getBoundingClientRect().top);
   const samples = [];
   for (let i = 0; i < 11; i++) {
     await page.waitForTimeout(700);
@@ -133,10 +134,12 @@ const lit = (page) => page.evaluate(() => {
   else {
     const xs = samples.map((d) => d.cx), ys = samples.map((d) => d.cy);
     const meanY = ys.reduce((a, b) => a + b) / ys.length;
-    console.log(`  lit px ${samples.map((d) => d.n).join(' ')}; centroid x ${Math.min(...xs).toFixed(0)}..${Math.max(...xs).toFixed(0)}, mean y ${meanY.toFixed(0)}; names at ${band.toFixed(0)}`);
+    console.log(`  lit px ${samples.map((d) => d.n).join(' ')}; centroid x ${Math.min(...xs).toFixed(0)}..${Math.max(...xs).toFixed(0)}, mean y ${meanY.toFixed(0)}; names at ${namesTop.toFixed(0)}`);
     if (samples.some((d) => d.n < 100)) bad('the dust went dark mid-lap - the wand is not flying');
-    if (!(Math.min(...xs) < 150 && Math.max(...xs) > 240)) bad('the wand stays on one side: no figure of eight');
-    if (!(meanY < band)) bad(`the dust's weight (y ${meanY.toFixed(0)}) is below the names (${band.toFixed(0)})`);
+    // each lobe's weight sits well off centre, so a centroid that never leaves the middle
+    // third is a wand that is not looping
+    if (!(Math.min(...xs) < W / 3 && Math.max(...xs) > W * 2 / 3)) bad('the wand stays on one side: no figure of eight');
+    if (!(meanY < namesTop)) bad(`the dust's weight (y ${meanY.toFixed(0)}) is below the names (${namesTop.toFixed(0)})`);
     if (samples.some((d) => d.top < 0)) bad('the dust is clipped at the top of the screen');
   }
   await page.close();

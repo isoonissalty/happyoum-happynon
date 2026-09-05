@@ -25,7 +25,11 @@
   // each spark is white, so white itself is not in the mix.
   var COLORS = ['#b3a3de', '#8fc4b4', '#f2c65a'];
   var MAX = 240;        // the oldest spark yields when the hand is fast
-  var SPACING = 6;      // px of travel per spark, so speed sets density not frame rate
+  // px of travel per spark, so speed sets density not frame rate, and how far each spark
+  // scatters from the path. The flying wand moves slowly, so it lays a tighter, denser
+  // trail: at the hand's spacing it reads as a fault rather than a path.
+  var HAND = { spacing: 6, spread: 22 };
+  var FLIGHT = { spacing: 2, spread: 14 };
   var GRAVITY = 70;     // px/s^2: dust settles, it does not drop
   var DRAG = 2.4;
   var LAP = 7;          // s per figure of eight, when the wand flies itself
@@ -34,7 +38,7 @@
   var sparks = [];
   var last = null;      // the previous path sample: x, y, t
   var raf = 0, lastFrame = 0;
-  var loop = null;      // the figure of eight: centre and half-axes
+  var figure = null;    // the figure of eight: centre and half-axes
   var theta = 0;
 
   function resize() {
@@ -52,9 +56,9 @@
   // is a few px on a phone on its side and a hundred on one held upright.
   function fitLoop() {
     var head = document.querySelector('h1');
-    var band = head ? head.getBoundingClientRect().top + window.scrollY : 0;
+    var band = head ? head.getBoundingClientRect().top : 0;
     band = Math.max(band, 40);
-    loop = { cx: w / 2, cy: band / 2, a: Math.min(w * .3, 170), b: Math.min(band * .55, 44) };
+    figure = { cx: w / 2, cy: band / 2, a: Math.min(w * .3, 170), b: Math.min(band * .45, 44) };
   }
 
   function spawn(x, y, vx, vy, spread) {
@@ -76,18 +80,18 @@
     });
   }
 
-  // one spark per `spacing` px, laid along the segment from the previous sample so a
+  // one spark per emitter.spacing px, laid along the segment from the previous sample so a
   // fast sweep leaves a line of dust rather than a spark per event
-  function trail(x, y, t, spacing, spread) {
+  function trail(x, y, t, emitter) {
     if (!last) { last = { x: x, y: y, t: t }; return; }
     var dx = x - last.x, dy = y - last.y;
     var dist = Math.hypot(dx, dy);
     var dtms = Math.max(t - last.t, 1);
     var vx = dx / dtms * 1000, vy = dy / dtms * 1000;
-    var n = Math.floor(dist / spacing);
+    var n = Math.floor(dist / emitter.spacing);
     for (var i = 1; i <= n; i++) {
       var f = i / n;
-      spawn(last.x + dx * f, last.y + dy * f, vx, vy, spread);
+      spawn(last.x + dx * f, last.y + dy * f, vx, vy, emitter.spread);
     }
     if (n) { last = { x: x, y: y, t: t }; wake(); }
   }
@@ -108,12 +112,10 @@
     ctx.clearRect(0, 0, w, h);
 
     if (handsFree) {
-      // a lemniscate: x runs sin, y runs sin*cos, so the crossing is at the centre.
-      // A third of the pointer's spacing, since the wand moves slowly and a sparse
-      // trail reads as a fault rather than a path.
+      // a lemniscate: x runs sin, y runs sin*cos, so the crossing is at the centre
       theta += dt * Math.PI * 2 / LAP;
       var s = Math.sin(theta), c = Math.cos(theta);
-      trail(loop.cx + loop.a * s, loop.cy + loop.b * s * c, t, SPACING / 3, 14);
+      trail(figure.cx + figure.a * s, figure.cy + figure.b * s * c, t, FLIGHT);
     }
 
     for (var i = sparks.length - 1; i >= 0; i--) {
@@ -165,11 +167,16 @@
   resize();
   addEventListener('resize', resize);
 
-  if (handsFree) { wake(); return; }
+  if (handsFree) {
+    // the heading moves when the web font lands, and the figure follows it
+    if (document.fonts) document.fonts.ready.then(fitLoop);
+    wake();
+    return;
+  }
 
   addEventListener('pointermove', function (e) {
     if (e.pointerType === 'touch') return;
-    trail(e.clientX, e.clientY, e.timeStamp, SPACING, 22);
+    trail(e.clientX, e.clientY, e.timeStamp, HAND);
   }, { passive: true });
 
   // a press is a flick of the wand: a burst from the tip
