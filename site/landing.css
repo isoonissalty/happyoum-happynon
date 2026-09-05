@@ -80,7 +80,7 @@
 /* three layers, so the items genuinely emerge from inside rather than sit on top */
 .envelope{
   position:relative;
-  cursor:pointer;
+  cursor: var(--wand-lit), pointer;
   /* the aspect ratio is 78/86, so 35svh of height is 31.7svh of width */
   width: min(clamp(260px, 60vw, 520px), 31.7svh);
   aspect-ratio: 78 / 86;

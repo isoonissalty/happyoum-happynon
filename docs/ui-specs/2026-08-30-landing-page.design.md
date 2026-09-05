@@ -49,6 +49,7 @@ site/
 ├── styles.css        invitation only
 ├── landing.css       landing only
 ├── landing.js        motion
+├── pixie.js          the wand's dust, shared by both pages
 ├── assets/           existing art, unchanged
 └── assets/landing/   mock art
 ```
@@ -320,6 +321,21 @@ bound is twice as strict on mobile for a composition that is proportionally iden
 Trigger: one `IntersectionObserver` on `.panel--invite` at `threshold: 0.35`, adding
 `is-in` once and then disconnecting. Firing once matters - re-triggering on every scroll
 past would turn the moment into a tic.
+
+## The wand
+
+The pointer is a wand on both pages: an inline SVG cursor in `base.css` with the hotspot
+on the star, so the dust falls from its tip. Clickable things - links, buttons, the
+envelope, the viewer - swap to a lit variant with a gold star, keeping the affordance the
+pointer-hand gave. Every `cursor` keeps its keyword fallback (`auto`, `pointer`,
+`zoom-out`) so a refused image still means the right thing. Nothing is fenced on
+`pointer:fine`: a touch device never paints a cursor.
+
+`pixie.js` draws the dust on a fixed, pointer-transparent canvas over the page: one spark
+per 6px of travel laid along the pointer's path, so a fast sweep leaves a line rather
+than a spark per event, and a burst on press. Sparks settle under light gravity, twinkle,
+and go out; the loop runs only while dust is in the air. It returns at once on coarse
+pointers and under reduced motion.
 
 ## Reduced motion
 
