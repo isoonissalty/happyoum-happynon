@@ -136,6 +136,9 @@ body{
 
 .btn{
   position:relative;
+  /* the fill below sits at z-index:-1, and without its own stacking context the button
+     would push it behind the card */
+  isolation:isolate;
   display:inline-block;
   border:2px solid var(--ink);
   border-radius:999px;
@@ -146,21 +149,32 @@ body{
   color: var(--ink);
   background: transparent;
   text-decoration:none;
-  transition: background-color .2s ease, color .2s ease,
-              translate .2s var(--ease-soft), scale var(--press) ease-out;
+  transition: translate .2s var(--ease-soft), scale var(--press) ease-out;
+}
+
+/* the hover fill is the ground's two tints run together, so a lit button belongs to the
+   stripes behind the card. A gradient cannot transition, so it lives on a pseudo
+   element and fades in by opacity. */
+.btn::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  border-radius:inherit;
+  background: linear-gradient(100deg, var(--mint), var(--lavender));
+  opacity:0;
+  transition: opacity .2s ease;
 }
 
 /* hover fills, and the button lifts a touch to meet the pointer; pressing sets it back
    down. The lift is fenced to real pointers so a tap on a phone never leaves a button
-   floating after the finger has gone. */
+   floating after the finger has gone; the fill answers a press on every device. */
 @media (hover:hover) and (pointer:fine){
-  .btn:hover{
-    background: var(--ink);
-    color: var(--cream);
-    translate: 0 -2px;
-  }
+  .btn:hover{ translate: 0 -2px; }
+  .btn:hover::before{ opacity:1; }
 }
 .btn:active{ translate: 0 1px; scale: .98; }
+.btn:active::before{ opacity:1; }
 
 /* an outbound button says so as the pointer arrives: the arrow lives in the right
    padding, so nothing reflows */
@@ -187,13 +201,12 @@ body{
 }
 
 @media (prefers-reduced-motion: reduce){
-  .btn, .btn::after{ transition:none; }
+  .btn, .btn::before, .btn::after{ transition:none; }
   .btn:hover, .btn:active{ translate:none; scale:none; }
 }
 
 .btn:focus-visible{
   outline: 3px solid var(--ink);
   outline-offset: 3px;
-  background: var(--ink);
-  color: var(--cream);
 }
+.btn:focus-visible::before{ opacity:1; }
