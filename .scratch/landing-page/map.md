@@ -66,6 +66,11 @@ Standing constraints settled while charting:
   invitation gains its first script; pieces scale in once on scroll and drift on
   `rotate`/`scale`, static under reduced motion and without the script.
 
+- [Micro-interactions](issues/14-micro-interactions.md) - buttons lift and press, the
+  envelope items answer the pointer and the envelope replays on tap, the hero and agenda
+  rise in, the map leans in; one easing vocabulary in `base.css`, all off under reduced
+  motion.
+
 ## Not yet specified
 
 - **How far the visual fix reaches.** Whether the fix lives in `landing.css` alone or has

@@ -16,9 +16,30 @@
   font-size: clamp(22px, 2.8vw, 40px);
   text-align: center;
   padding: clamp(60px, 8vw, 96px) 16px;
+  transition: letter-spacing .4s var(--ease-soft);
+}
+@media (hover:hover) and (pointer:fine){
+  .hashtag:hover{ letter-spacing:.04em; }
 }
 
 .content img{ max-width:100%; height:auto; }
+
+/* the hero arrives in reading order, the locket last of the pair it belongs to; pure
+   CSS, so it runs with or without the script and always ends at the finished page */
+.hero .eyebrow   { opacity:0; animation: rise .8s ease-out .1s forwards; }
+.hero h1         { opacity:0; animation: rise .8s ease-out .25s forwards; }
+.hero .locket    { opacity:0; animation: rise .8s ease-out .45s forwards,
+                                        sway 6s ease-in-out 1.4s infinite; }
+.hero .names     { opacity:0; animation: rise .8s ease-out .65s forwards; }
+.hero .invite    { opacity:0; animation: rise .8s ease-out .8s forwards; }
+.hero .date-block{ opacity:0; animation: rise .8s ease-out .95s forwards; }
+
+/* the sway is on `rotate`, not transform, so it composes with the rise instead of
+   fighting it for the property */
+@keyframes sway{
+  0%, 100%{ rotate: -1.5deg; }
+  50%     { rotate: 1.5deg; }
+}
 
 /* .content already carries its own top/bottom padding, so the hero and
    actions gaps subtract it out to land on the spec'd distance from the card edge */
@@ -79,6 +100,10 @@ h1.script{
   width: clamp(270px, 31.25vw, 450px);
   margin: 0 auto;
   display:block;
+  transition: translate .3s var(--ease-soft);
+}
+@media (hover:hover) and (pointer:fine){
+  .dresscode img:not(.deco):hover{ translate: 0 -4px; }
 }
 
 .agenda ul{
@@ -93,6 +118,27 @@ h1.script{
   display:flex;
   flex-direction:column;
   align-items:center;
+}
+
+/* each item rises as it scrolls in and its bow gives one wiggle, as if just tied.
+   Gated on .motion (invitation.js), so a blocked script renders the finished list. */
+.motion .agenda li{
+  opacity:0;
+  translate: 0 18px;
+}
+.motion .agenda li.is-in{
+  opacity:1;
+  translate: 0 0;
+  transition: opacity .6s ease-out, translate .7s var(--ease-soft);
+}
+.motion .agenda li.is-in .bow{
+  animation: wiggle .9s ease-in-out .35s 1;
+}
+@keyframes wiggle{
+  0%, 100%{ rotate: 0deg; }
+  25%     { rotate: 5deg; }
+  60%     { rotate: -4deg; }
+  85%     { rotate: 2deg; }
 }
 
 .bow{
@@ -130,14 +176,30 @@ h1.script{
   margin-top: clamp(2px, 0.28vw, 4px);
 }
 
-.maplink{ display:block; margin:0 auto; }
+.maplink{
+  display:block;
+  width:fit-content;
+  margin:0 auto;
+  border-radius: 40px;
+  overflow:hidden;
+  transition: translate .3s var(--ease-soft);
+}
 
 .maplink img{
   width: clamp(280px, 44.44vw, 640px);
   border-radius: 40px;
   display:block;
   margin: 0 auto;
+  transition: scale .6s var(--ease-soft);
 }
+
+/* the map lifts and leans in - it is the one link on the page that is a picture */
+@media (hover:hover) and (pointer:fine){
+  .maplink:hover{ translate: 0 -4px; }
+  .maplink:hover img{ scale:1.04; }
+}
+.maplink:focus-visible{ outline: 3px solid var(--ink); outline-offset: 4px; }
+.maplink:focus-visible img{ scale:1.04; }
 
 .venue{
   font-family:'Quicksand', sans-serif;
@@ -253,4 +315,18 @@ h1.script{
     max-width: 1024px;
     margin-inline: auto;
   }
+}
+
+/* reduced motion renders the finished page: no entrance, no drift, nothing that moves
+   under the pointer. The button colour change stays; it is not motion. */
+@media (prefers-reduced-motion: reduce){
+  .hero .eyebrow, .hero h1, .hero .locket, .hero .names, .hero .invite, .hero .date-block{
+    opacity:1;
+    animation:none;
+    transform:none;
+    rotate:none;
+  }
+  .dresscode img:not(.deco), .maplink, .maplink img, .hashtag{ transition:none; }
+  .dresscode img:not(.deco):hover, .maplink:hover{ translate:none; }
+  .maplink:hover img, .maplink:focus-visible img{ scale:none; }
 }
