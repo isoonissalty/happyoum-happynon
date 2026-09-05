@@ -1,11 +1,17 @@
-/* Pixie dust off the wand: sparks spawned along the pointer's path on a fixed canvas
-   over the page. Skipped where there is no wand to trail - coarse pointers - and under
+/* Pixie dust off the wand: sparks spawned along a path on a fixed canvas over the page.
+   Under a fine pointer the path is the hand's. A touch screen has no wand to trail, so
+   where the page asks for it (data-hands-free on this script's tag) the wand flies
+   itself: a lazy figure of eight across the band above the first heading. Skipped under
    reduced motion. Every failure here is silent: the dust is decoration, never the page. */
 (function () {
   'use strict';
 
-  if (!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
+  var tag = document.currentScript;
+  var handsFree = !fine && !!(tag && tag.hasAttribute('data-hands-free'));
+  if (!fine && !handsFree) return;
 
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d');
@@ -22,11 +28,14 @@
   var SPACING = 6;      // px of travel per spark, so speed sets density not frame rate
   var GRAVITY = 70;     // px/s^2: dust settles, it does not drop
   var DRAG = 2.4;
+  var LAP = 7;          // s per figure of eight, when the wand flies itself
 
   var dpr = 1, w = 0, h = 0;
   var sparks = [];
-  var last = null;      // the previous pointer sample: x, y, t
+  var last = null;      // the previous path sample: x, y, t
   var raf = 0, lastFrame = 0;
+  var loop = null;      // the figure of eight: centre and half-axes
+  var theta = 0;
 
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -35,9 +44,18 @@
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (handsFree) fitLoop();
   }
-  resize();
-  addEventListener('resize', resize);
+
+  // The figure sits in the band between the top of the screen and the first heading,
+  // so the dust falls onto the copy rather than across it. The band is read live: it
+  // is a few px on a phone on its side and a hundred on one held upright.
+  function fitLoop() {
+    var head = document.querySelector('h1');
+    var band = head ? head.getBoundingClientRect().top + window.scrollY : 0;
+    band = Math.max(band, 40);
+    loop = { cx: w / 2, cy: band / 2, a: Math.min(w * .3, 170), b: Math.min(band * .55, 44) };
+  }
 
   function spawn(x, y, vx, vy, spread) {
     if (sparks.length >= MAX) sparks.shift();
@@ -58,6 +76,22 @@
     });
   }
 
+  // one spark per `spacing` px, laid along the segment from the previous sample so a
+  // fast sweep leaves a line of dust rather than a spark per event
+  function trail(x, y, t, spacing, spread) {
+    if (!last) { last = { x: x, y: y, t: t }; return; }
+    var dx = x - last.x, dy = y - last.y;
+    var dist = Math.hypot(dx, dy);
+    var dtms = Math.max(t - last.t, 1);
+    var vx = dx / dtms * 1000, vy = dy / dtms * 1000;
+    var n = Math.floor(dist / spacing);
+    for (var i = 1; i <= n; i++) {
+      var f = i / n;
+      spawn(last.x + dx * f, last.y + dy * f, vx, vy, spread);
+    }
+    if (n) { last = { x: x, y: y, t: t }; wake(); }
+  }
+
   function star(x, y, r, rot) {
     ctx.beginPath();
     for (var i = 0; i < 8; i++) {
@@ -72,6 +106,15 @@
     var dt = Math.min((t - lastFrame) / 1000, .05);   // a tab coming back must not fling the dust
     lastFrame = t;
     ctx.clearRect(0, 0, w, h);
+
+    if (handsFree) {
+      // a lemniscate: x runs sin, y runs sin*cos, so the crossing is at the centre.
+      // A third of the pointer's spacing, since the wand moves slowly and a sparse
+      // trail reads as a fault rather than a path.
+      theta += dt * Math.PI * 2 / LAP;
+      var s = Math.sin(theta), c = Math.cos(theta);
+      trail(loop.cx + loop.a * s, loop.cy + loop.b * s * c, t, SPACING / 3, 14);
+    }
 
     for (var i = sparks.length - 1; i >= 0; i--) {
       var p = sparks[i];
@@ -110,32 +153,23 @@
     }
     ctx.globalAlpha = 1;
 
-    // the loop runs only while there is dust in the air
-    raf = sparks.length ? requestAnimationFrame(frame) : 0;
+    // under a pointer the loop runs only while there is dust in the air; the flying
+    // wand keeps it running
+    raf = (sparks.length || handsFree) ? requestAnimationFrame(frame) : 0;
   }
 
   function wake() {
     if (!raf) { lastFrame = performance.now(); raf = requestAnimationFrame(frame); }
   }
 
+  resize();
+  addEventListener('resize', resize);
+
+  if (handsFree) { wake(); return; }
+
   addEventListener('pointermove', function (e) {
     if (e.pointerType === 'touch') return;
-    var x = e.clientX, y = e.clientY, t = e.timeStamp;
-    if (!last) { last = { x: x, y: y, t: t }; return; }
-
-    var dx = x - last.x, dy = y - last.y;
-    var dist = Math.hypot(dx, dy);
-    var dtms = Math.max(t - last.t, 1);
-    var vx = dx / dtms * 1000, vy = dy / dtms * 1000;
-
-    // one spark per SPACING px, laid along the segment so a fast sweep leaves a line
-    // of dust rather than a spark per event
-    var n = Math.floor(dist / SPACING);
-    for (var i = 1; i <= n; i++) {
-      var f = i / n;
-      spawn(last.x + dx * f, last.y + dy * f, vx, vy, 22);
-    }
-    if (n) { last = { x: x, y: y, t: t }; wake(); }
+    trail(e.clientX, e.clientY, e.timeStamp, SPACING, 22);
   }, { passive: true });
 
   // a press is a flick of the wand: a burst from the tip

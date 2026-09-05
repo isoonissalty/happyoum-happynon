@@ -71,6 +71,14 @@ the regression diff below is what proves it.
 **One addition while in this file:** `.btn:focus-visible{ outline:3px solid var(--ink);
 outline-offset:3px }`. The button had no visible keyboard focus.
 
+**The hover fill** is the ground's two tints run together,
+`linear-gradient(100deg, var(--mint), var(--lavender))`, so a lit button belongs to the
+stripes behind the card; the text stays `--ink`. A gradient cannot transition, so it lives
+on `.btn::before` at `z-index:-1` and fades in by opacity, with `isolation:isolate` on the
+button so the pseudo element stays inside it rather than dropping behind the card. Hover
+and focus-visible light it on fine pointers; `:active` lights it everywhere, so a tap on a
+phone gets the same answer.
+
 **New token,** appended to `:root`:
 
 ```
@@ -272,7 +280,7 @@ Three layers, so the items genuinely emerge from inside:
 
 Each item gets its own z-index rather than sharing one. Stacking is then explicit and
 independent of the entrance order: the ticket's rotated box is far wider than the ticket,
-and left to DOM order it buries both cat heads.
+and left to DOM order it buries whatever paints before it.
 
 The back image occupies the lower ~60% of the box; the upper ~40% is headroom the items
 fly into. `.envelope` is `overflow: visible` - items are allowed to overshoot.
@@ -284,10 +292,15 @@ properties. Percentage positions keep the arrangement intact as the envelope sca
 
 | item | asset | left/right | bottom | width | `--rot` | `--ox` | `--oy` | `--delay` | z |
 |---|---|---|---|---|---|---|---|---|---|
-| photo strip 1 | `photo-strip-1.jpg` | `left:9%` | `8%` | `23%` | `-12deg` | `90%` | `45%` | `0ms` | 1 |
-| photo strip 2 | `photo-strip-2.jpg` | `left:22%` | `9%` | `23%` | `-5deg` | `50%` | `45%` | `90ms` | 2 |
-| ticket | `ticket.png` | `right:11%` | `30%` | `34%` | `7deg` | `-50%` | `60%` | `330ms` | 3 |
-| cats | `cat_heads.png` | `left:29%` | `37%` | `56%` | `-3deg` | `0%` | `80%` | `200ms` | 4 |
+| photo strip 1 | `photo-strip-1.jpg` | `left:6%` | `6%` | `23%` | `-12deg` | `90%` | `45%` | `0ms` | 1 |
+| photo strip 2 | `photo-strip-2.jpg` | `left:17%` | `4%` | `23%` | `-5deg` | `50%` | `45%` | `90ms` | 2 |
+| cats | `cat_heads.png` | `right:-1%` | `46%` | `46%` | `5deg` | `-40%` | `60%` | `200ms` | 3 |
+| ticket | `ticket.png` | `left:27%` | `26%` | `38%` | `-4deg` | `0%` | `70%` | `330ms` | 4 |
+
+The ticket is the payoff, so it stands centre front and lands last; the cats peek over
+its right shoulder, their plate run out to the flap so the black cat clears the ticket.
+Below 700px of window height the strips narrow to `21%`: at that size their tops reach
+the lead-in line, and a little width costs them a lot of height.
 
 `--ox` / `--oy` are percentages of the item's own box, so the start position scales with
 the envelope. Each pair points its item back toward the envelope mouth - down and inward.
@@ -334,8 +347,19 @@ pointer-hand gave. Every `cursor` keeps its keyword fallback (`auto`, `pointer`,
 `pixie.js` draws the dust on a fixed, pointer-transparent canvas over the page: one spark
 per 6px of travel laid along the pointer's path, so a fast sweep leaves a line rather
 than a spark per event, and a burst on press. Sparks settle under light gravity, twinkle,
-and go out; the loop runs only while dust is in the air. It returns at once on coarse
-pointers and under reduced motion.
+and go out; the loop runs only while dust is in the air. It returns at once under reduced
+motion.
+
+A touch screen has no wand to trail, so the landing flies it itself: its `<script>` tag
+carries `data-hands-free`, and on a coarse pointer the emitter runs a horizontal figure of
+eight - a lemniscate, `x = a sin t`, `y = b sin t cos t` - across the band between the top
+of the screen and the names, one lap every 7s. The band is measured live from the `h1`,
+so the figure is a hundred pixels tall on a phone held upright and a sliver on one on its
+side; the dust it sheds settles down onto the copy rather than across it. The trail is
+laid at 2px spacing, a third of the pointer's, because the wand moves slowly and a sparse
+trail reads as a fault. The invitation does not carry the attribute and gets no dust on
+touch. `motion-check.mjs` samples the canvas across a lap under touch emulation and holds
+the dust to both lobes and to the band.
 
 ## Reduced motion
 
@@ -378,8 +402,13 @@ exact intrinsic sizes, and written into the `<img>` `width`/`height` attributes:
 | file | size | becomes |
 |---|---|---|
 | `tile-1.png` … `tile-8.png` | 600x600 | the couple's photos |
-| `envelope-back.png` | 1176x1476 | envelope body, 1176x1136 of paper under a transparent top |
-| `envelope-front.png` | 1176x1114 | envelope flaps and front pocket; clip-pathed to the paper so its transparent top never takes clicks |
+| `envelope-back.png` | 1219x1476 | envelope body, the paper under a transparent top |
+| `envelope-front.png` | 1219x1476 | envelope flaps and front pocket, transparent above the pocket's V edge |
+
+`landing-check.mjs` reads the pocket's edge off `envelope-front.png` itself, through a
+canvas, at the column under each item's centre: the edge is a V, so the front plate's box
+says nothing about where an item is hidden. Chrome is launched with
+`--allow-file-access-from-files` for it, since a `file://` image otherwise taints the canvas.
 | `photo-strip-1.jpg`, `photo-strip-2.jpg` | 332x1268 | 4-frame photo booth strips, fanned as a pair |
 | `cat_heads.png` | 1040x952 | both die-cut cat heads on one plate |
 | `ticket.png` | 1241x1750 | the invitation card, portrait |

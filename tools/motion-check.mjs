@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 
 const site = new URL('../site/', import.meta.url);
 const url = new URL('index.html', site).href;
+const invitation = new URL('invitation.html', site).href;
 const browser = await chromium.launch({ channel: 'chrome' });
 let fail = 0;
 const bad = (m) => { console.log('  FAIL ' + m); fail++; };
@@ -86,6 +87,93 @@ for (const [label, opts] of [
   for (const sel of ['.names', '.line', '.lead', '.envelope', '.invited', '.btn', '.tag', ...POPS]) {
     if (await opacity(page, sel) < 0.99) bad(`${sel} is not visible on load`);
   }
+  if (await page.$('.pixie')) bad('the dust canvas is present under reduced motion');
+  await page.close();
+}
+
+/* --- the dust on a touch screen ---
+   With no pointer to trail, the landing flies the wand itself: a figure of eight across
+   the band above the names. The invitation asks for nothing and gets nothing. */
+const TOUCH = { hasTouch: true, isMobile: true };
+
+// where the drawn dust sits: every lit canvas pixel's bounding box and centroid, in CSS px
+const lit = (page) => page.evaluate(() => {
+  const c = document.querySelector('.pixie');
+  if (!c) return null;
+  const scale = c.width / innerWidth;
+  const a = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  let n = 0, sx = 0, sy = 0, top = Infinity, bottom = -Infinity;
+  for (let i = 3; i < a.length; i += 4) {
+    if (a[i] < 40) continue;
+    const y = ((i >> 2) / c.width | 0) / scale;
+    n++; sx += ((i >> 2) % c.width) / scale; sy += y;
+    if (y < top) top = y;
+    if (y > bottom) bottom = y;
+  }
+  return { n, cx: sx / n, cy: sy / n, top, bottom };
+});
+
+{
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, ...TOUCH });
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  console.log('\ntouch, landing');
+  const coarse = await page.evaluate(() => matchMedia('(hover:none) and (pointer:coarse)').matches);
+  if (!coarse) bad('the emulated page still reports a fine pointer, so this section proves nothing');
+
+  // Only the last second or so of the path is lit at any instant, so one frame shows a
+  // lobe, not the figure. Sample across a lap: the wand must never go dark, must visit
+  // both lobes, and must keep its weight in the band above the names.
+  const band = await page.$eval('.names', (el) => el.getBoundingClientRect().top);
+  const samples = [];
+  for (let i = 0; i < 11; i++) {
+    await page.waitForTimeout(700);
+    samples.push(await lit(page));
+  }
+  if (samples.some((d) => !d)) bad('no dust canvas on a touch screen');
+  else {
+    const xs = samples.map((d) => d.cx), ys = samples.map((d) => d.cy);
+    const meanY = ys.reduce((a, b) => a + b) / ys.length;
+    console.log(`  lit px ${samples.map((d) => d.n).join(' ')}; centroid x ${Math.min(...xs).toFixed(0)}..${Math.max(...xs).toFixed(0)}, mean y ${meanY.toFixed(0)}; names at ${band.toFixed(0)}`);
+    if (samples.some((d) => d.n < 100)) bad('the dust went dark mid-lap - the wand is not flying');
+    if (!(Math.min(...xs) < 150 && Math.max(...xs) > 240)) bad('the wand stays on one side: no figure of eight');
+    if (!(meanY < band)) bad(`the dust's weight (y ${meanY.toFixed(0)}) is below the names (${band.toFixed(0)})`);
+    if (samples.some((d) => d.top < 0)) bad('the dust is clipped at the top of the screen');
+  }
+  await page.close();
+}
+
+{
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, ...TOUCH });
+  await page.goto(invitation, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(400);
+  console.log('\ntouch, invitation');
+  if (await page.$('.pixie')) bad('the invitation grows a dust canvas on a touch screen');
+  await page.close();
+}
+
+{
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, ...TOUCH, reducedMotion: 'reduce' });
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(400);
+  console.log('\ntouch, reduced motion');
+  if (await page.$('.pixie')) bad('the wand flies under reduced motion');
+  await page.close();
+}
+
+/* --- the dust under a real pointer is unchanged: it trails the hand and nothing else --- */
+{
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(1500);
+  console.log('\npointer');
+  const before = await lit(page);
+  if (!before) bad('no dust canvas under a fine pointer');
+  else if (before.n) bad(`${before.n} lit pixels before the pointer has moved - the wand flies on desktop`);
+  await page.mouse.move(400, 400);
+  await page.mouse.move(700, 450, { steps: 12 });
+  await page.waitForTimeout(100);
+  const after = await lit(page);
+  if (after && after.n < 100) bad(`only ${after.n} lit pixels after a sweep`);
   await page.close();
 }
 
