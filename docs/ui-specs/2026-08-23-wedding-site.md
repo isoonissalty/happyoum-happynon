@@ -39,7 +39,7 @@
    - Address: `8 86 Nuan Chan 12 Alley, Nuan Chan,` / `Bueng Kum, Bangkok 10230`
 5. **Actions (added scope - not in mock, styled to match)**
    - `RSVP` button - href placeholder `#rsvp` with HTML comment `<!-- TODO: replace with real RSVP URL -->`
-   - `Add to calendar` button - links to Google Calendar template URL for 23 Jan 2027 18:00-23:59 ICT, title "Oum & Non Wedding", location = venue address. (No .ics download; single link keeps it JS-free.)
+   - `Add to calendar` button - links to Google Calendar template URL for 23 Jan 2027 18:00-23:59 ICT, title "Oum & Non's Wedding", location = venue address. (No .ics download; single link keeps it JS-free.)
    - Both styled as pill outline buttons in ink color on cream (see design.md).
 6. **Footer (on the striped background, below the cream card)**
    - Cream text: `#oumnonhappyhappy`
