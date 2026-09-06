@@ -92,10 +92,25 @@ for (const [label, opts] of [
 }
 
 /* --- the dust on a touch screen ---
-   With no pointer to trail, the landing flies the wand itself: a figure of eight across
-   the band above the names. The invitation asks for nothing and gets nothing. */
+   The finger is the wand on both pages. The landing also flies one itself: a figure of
+   eight across the band above the names, so the dust is there before a touch. */
 const TOUCH = { hasTouch: true, isMobile: true };
 const W = 390;
+
+// a finger drawn from (x0,y0) to (x1,y1) through the real input pipeline, so the page
+// sees the same touchstart/touchmove/touchend a hand produces
+async function drag(page, x0, y0, x1, y1, steps = 16) {
+  const cdp = await page.context().newCDPSession(page);
+  const at = (x, y) => ({ touchPoints: [{ x, y, id: 1 }] });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', ...at(x0, y0) });
+  for (let i = 1; i <= steps; i++) {
+    const f = i / steps;
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', ...at(x0 + (x1 - x0) * f, y0 + (y1 - y0) * f) });
+    await page.waitForTimeout(16);
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await cdp.detach();
+}
 
 // where the drawn dust sits: every lit canvas pixel's bounding box and centroid, in CSS px
 const lit = (page) => page.evaluate(() => {
@@ -142,6 +157,14 @@ const lit = (page) => page.evaluate(() => {
     if (!(meanY < namesTop)) bad(`the dust's weight (y ${meanY.toFixed(0)}) is below the names (${namesTop.toFixed(0)})`);
     if (samples.some((d) => d.top < 0)) bad('the dust is clipped at the top of the screen');
   }
+
+  // a finger drawn well below the band must leave dust where the wand never flies
+  const H = 844;
+  await drag(page, 40, H * .75, W - 40, H * .8);
+  await page.waitForTimeout(60);
+  const after = await lit(page);
+  console.log(`  after a finger drag: lit px ${after.n}, bottom ${after.bottom.toFixed(0)}`);
+  if (after.bottom < H * .6) bad(`the finger leaves no dust: the lit area stops at y ${after.bottom.toFixed(0)}`);
   await page.close();
 }
 
@@ -150,7 +173,14 @@ const lit = (page) => page.evaluate(() => {
   await page.goto(invitation, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(400);
   console.log('\ntouch, invitation');
-  if (await page.$('.pixie')) bad('the invitation grows a dust canvas on a touch screen');
+  const before = await lit(page);
+  if (!before) bad('no dust canvas on the invitation on a touch screen');
+  else if (before.n) bad(`${before.n} lit pixels before a touch - the invitation flies a wand`);
+  await drag(page, 40, 500, 350, 560);
+  await page.waitForTimeout(60);
+  const after = await lit(page);
+  console.log(`  after a finger drag: lit px ${after ? after.n : 0}`);
+  if (!after || after.n < 100) bad(`only ${after ? after.n : 0} lit pixels after a finger drag`);
   await page.close();
 }
 

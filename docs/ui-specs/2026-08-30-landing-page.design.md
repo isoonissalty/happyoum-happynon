@@ -350,16 +350,25 @@ than a spark per event, and a burst on press. Sparks settle under light gravity,
 and go out; the loop runs only while dust is in the air. It returns at once under reduced
 motion.
 
-A touch screen has no wand to trail, so the landing flies it itself: its `<script>` tag
-carries `data-hands-free`, and on a coarse pointer the emitter runs a horizontal figure of
-eight - a lemniscate, `x = a sin t`, `y = b sin t cos t` - across the band between the top
-of the screen and the names, one lap every 7s. The band is measured live from the `h1`,
-so the figure is a hundred pixels tall on a phone held upright and a sliver on one on its
-side; the dust it sheds settles down onto the copy rather than across it. The trail is
-laid at 2px spacing, a third of the pointer's, because the wand moves slowly and a sparse
-trail reads as a fault. The invitation does not carry the attribute and gets no dust on
-touch. `motion-check.mjs` samples the canvas across a lap under touch emulation and holds
-the dust to both lobes and to the band.
+On a touch screen the finger is the wand, on both pages: `touchmove` lays the same 6px
+trail along the finger's path and `touchstart` bursts from under the fingertip. Touch
+events rather than pointer events, because once the browser takes a drag for scrolling it
+cancels the pointer stream, while `touchmove` keeps reporting the finger - so the dust
+follows a scroll as well as a sweep, and the listeners are passive so the scroll is never
+held up. Each emitter (the hand, each finger, the flying wand) keeps its own previous
+sample, so two paths in the air never draw a line between each other.
+
+The landing also flies a wand itself on touch, so the dust is there before anyone touches
+the screen: its `<script>` tag carries `data-hands-free`, and on a coarse pointer the
+emitter runs a horizontal figure of eight - a lemniscate, `x = a sin t`, `y = b sin t cos t`
+- across the band between the top of the screen and the names, one lap every 7s. The band
+is measured live from the `h1`, so the figure is a hundred pixels tall on a phone held
+upright and a sliver on one on its side; the dust it sheds settles down onto the copy
+rather than across it. The trail is laid at 2px spacing, a third of the pointer's, because
+the wand moves slowly and a sparse trail reads as a fault. The invitation does not carry
+the attribute: it is dark until touched. `motion-check.mjs` samples the canvas across a
+lap under touch emulation and holds the dust to both lobes and to the band, then draws a
+finger through Chrome's input pipeline on both pages and asserts the dust follows it.
 
 ## Reduced motion
 

@@ -1,8 +1,9 @@
 /* Pixie dust off the wand: sparks spawned along a path on a fixed canvas over the page.
-   Under a fine pointer the path is the hand's. A touch screen has no wand to trail, so
-   where the page asks for it (data-hands-free on this script's tag) the wand flies
-   itself: a lazy figure of eight across the band above the first heading. Skipped under
-   reduced motion. Every failure here is silent: the dust is decoration, never the page. */
+   Under a fine pointer the path is the hand's; on a touch screen it is the finger's. Where
+   the page asks for it (data-hands-free on this script's tag) a wand also flies itself on
+   touch: a lazy figure of eight across the band above the first heading, so the dust is
+   there before anyone touches the screen. Skipped under reduced motion. Every failure
+   here is silent: the dust is decoration, never the page. */
 (function () {
   'use strict';
 
@@ -11,7 +12,6 @@
   var fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
   var tag = document.currentScript;
   var handsFree = !fine && !!(tag && tag.hasAttribute('data-hands-free'));
-  if (!fine && !handsFree) return;
 
   var canvas = document.createElement('canvas');
   var ctx = canvas.getContext('2d');
@@ -25,18 +25,21 @@
   // each spark is white, so white itself is not in the mix.
   var COLORS = ['#b3a3de', '#8fc4b4', '#f2c65a'];
   var MAX = 240;        // the oldest spark yields when the hand is fast
-  // px of travel per spark, so speed sets density not frame rate, and how far each spark
-  // scatters from the path. The flying wand moves slowly, so it lays a tighter, denser
-  // trail: at the hand's spacing it reads as a fault rather than a path.
-  var HAND = { spacing: 6, spread: 22 };
-  var FLIGHT = { spacing: 2, spread: 14 };
+  // Each emitter: px of travel per spark, so speed sets density not frame rate; how far
+  // each spark scatters from the path; and its own previous sample, so two paths in the
+  // air at once never draw a line between each other. The flying wand moves slowly, so it
+  // lays a tighter, denser trail: at the hand's spacing it reads as a fault rather than a
+  // path. A finger hides the point it touches, so its dust scatters a little wider.
+  var HAND = { spacing: 6, spread: 22, last: null };
+  var FLIGHT = { spacing: 2, spread: 14, last: null };
+  var TOUCH = { spacing: 6, spread: 26 };
   var GRAVITY = 70;     // px/s^2: dust settles, it does not drop
   var DRAG = 2.4;
   var LAP = 7;          // s per figure of eight, when the wand flies itself
 
   var dpr = 1, w = 0, h = 0;
   var sparks = [];
-  var last = null;      // the previous path sample: x, y, t
+  var fingers = {};     // one emitter per finger on the screen, by touch identifier
   var raf = 0, lastFrame = 0;
   var figure = null;    // the figure of eight: centre and half-axes
   var theta = 0;
@@ -80,10 +83,16 @@
     });
   }
 
+  function burst(x, y) {
+    for (var i = 0; i < 16; i++) spawn(x, y, 0, -40, 90);
+    wake();
+  }
+
   // one spark per emitter.spacing px, laid along the segment from the previous sample so a
   // fast sweep leaves a line of dust rather than a spark per event
   function trail(x, y, t, emitter) {
-    if (!last) { last = { x: x, y: y, t: t }; return; }
+    var last = emitter.last;
+    if (!last) { emitter.last = { x: x, y: y, t: t }; return; }
     var dx = x - last.x, dy = y - last.y;
     var dist = Math.hypot(dx, dy);
     var dtms = Math.max(t - last.t, 1);
@@ -93,7 +102,7 @@
       var f = i / n;
       spawn(last.x + dx * f, last.y + dy * f, vx, vy, emitter.spread);
     }
-    if (n) { last = { x: x, y: y, t: t }; wake(); }
+    if (n) { emitter.last = { x: x, y: y, t: t }; wake(); }
   }
 
   function star(x, y, r, rot) {
@@ -171,8 +180,34 @@
     // the heading moves when the web font lands, and the figure follows it
     if (document.fonts) document.fonts.ready.then(fitLoop);
     wake();
-    return;
   }
+
+  // a finger is a wand too. Touch events rather than pointer events: once the browser
+  // takes a drag for scrolling it cancels the pointer stream, while touchmove keeps
+  // reporting the finger, so the dust follows a scroll as well as a sweep. The pointer
+  // handlers below skip touch so a finger is never counted twice.
+  function finger(touch) {
+    var id = touch.identifier;
+    return fingers[id] || (fingers[id] = { spacing: TOUCH.spacing, spread: TOUCH.spread, last: null });
+  }
+  addEventListener('touchstart', function (e) {
+    for (var i = 0; i < e.changedTouches.length; i++) {
+      var t = e.changedTouches[i];
+      finger(t);
+      burst(t.clientX, t.clientY);
+    }
+  }, { passive: true });
+  addEventListener('touchmove', function (e) {
+    for (var i = 0; i < e.changedTouches.length; i++) {
+      var t = e.changedTouches[i];
+      trail(t.clientX, t.clientY, e.timeStamp, finger(t));
+    }
+  }, { passive: true });
+  function lift(e) {
+    for (var i = 0; i < e.changedTouches.length; i++) delete fingers[e.changedTouches[i].identifier];
+  }
+  addEventListener('touchend', lift, { passive: true });
+  addEventListener('touchcancel', lift, { passive: true });
 
   addEventListener('pointermove', function (e) {
     if (e.pointerType === 'touch') return;
@@ -182,11 +217,10 @@
   // a press is a flick of the wand: a burst from the tip
   addEventListener('pointerdown', function (e) {
     if (e.pointerType === 'touch') return;
-    for (var i = 0; i < 16; i++) spawn(e.clientX, e.clientY, 0, -40, 90);
-    wake();
+    burst(e.clientX, e.clientY);
   }, { passive: true });
 
   // the trail must not jump across the gap when the hand comes back in
-  addEventListener('pointerleave', function () { last = null; });
-  document.addEventListener('pointerleave', function () { last = null; });
+  addEventListener('pointerleave', function () { HAND.last = null; });
+  document.addEventListener('pointerleave', function () { HAND.last = null; });
 }());
