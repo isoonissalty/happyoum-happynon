@@ -19,6 +19,11 @@ Not "home page" or "first page" - both are ambiguous between this and the invita
 `site/invitation.html`, served at `/invitation.html`. Everything a guest acts on: date,
 dress code, agenda, venue, RSVP. One long cream card on the striped ground.
 
+The **scatter** is the hand-drawn stars, diamonds and sparkles around the content, each an
+`img.deco` carrying two placements: on a desktop a fixed distance past the 640px column
+into the card's margin band, below 1200px a distance from the card's centre line beside
+whatever content is narrow enough to leave room (see the `.deco` block in `styles.css`).
+
 ## Striped ground
 
 The mint/lavender vertical stripe from `base.css`, shared by both pages, and on both a

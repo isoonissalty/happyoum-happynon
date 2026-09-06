@@ -243,30 +243,52 @@ h1.script{
 /* decorations are positioned against their own section, not the card - a
    page-wide fixed top drifts into the wrong section once clamp() typography
    changes the height of everything above it; anchoring locally means each
-   deco only has to fit inside its own section's height */
+   deco only has to fit inside its own section's height.
+
+   Each piece carries two placements in its inline custom properties, and its
+   side class says which edge they hang from. On a desktop (--desk-x/y/w) it
+   sits a fixed px past the 640px column, in the card's margin band. Below
+   1200px that band is gone - the card itself is narrower than the column - so
+   the phone placement (--phone-d/y/w) sets the piece a distance from the
+   card's centre line instead, beside whichever piece of content is narrow
+   enough to leave room: the eyebrow and date, the section labels, the agenda
+   column, and the gaps between sections. */
 .hero, .dresscode, .agenda, .where, .actions{ position: relative; }
 
 .deco{
   position: absolute;
-  top: var(--y);
+  top: var(--desk-y);
+  width: var(--desk-w);
   pointer-events: none;
   z-index: 1;
 }
+.deco--l{ left:  var(--desk-x); }
+.deco--r{ right: var(--desk-x); }
 
-/* left/right push the deco out past the section's edge with a fixed px
-   offset larger than .content's own padding, so it always lands either in
-   the card's margin band or off the card entirely (clipped by .card's
-   overflow:hidden) - never inside the text column, at any viewport width */
-
-/* below this width .content's 640px cap stops constraining anything (the
-   card itself is already narrower), so the margin band is 0 and only the
-   smallest decorations are worth showing at all */
+/* the phone placement is measured at the clamp() floor, where every piece of
+   content is a fixed px size and centred. --phone-unit is 1px there and then
+   tracks the same vw slope the content clamps ride from 864px up, so a star
+   placed beside the date block at 390 is still beside it, not on it, at 1100. */
 @media (max-width:1199.98px){
-  .deco--lg{ display:none; }
+  .deco{
+    --phone-unit: max(1px, 0.1157vw);
+    top: calc(var(--phone-y) * var(--phone-unit));
+    width: calc(var(--phone-w) * var(--phone-unit));
+  }
+  .deco--l{ left: auto;  right: calc(50% + var(--phone-d) * var(--phone-unit)); }
+  .deco--r{ right: auto; left:  calc(50% + var(--phone-d) * var(--phone-unit)); }
 }
 
-@media (max-width:480px){
-  .deco--sm{ display:none; }
+/* the two buttons sit side by side here and span the card; stacked at 480 and
+   below they leave room beside each */
+@media (min-width:480.02px) and (max-width:1199.98px){
+  .actions .deco{ display:none; }
+}
+
+/* these pieces sit beside content that on a 320px window already reaches within
+   a few px of the wave band, so they are dropped rather than set on the wave */
+@media (max-width:359.98px){
+  .deco--tight{ display:none; }
 }
 
 /* ---------------------------------------------------------------------------

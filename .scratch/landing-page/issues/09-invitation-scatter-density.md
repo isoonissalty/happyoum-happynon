@@ -26,3 +26,7 @@ says reuse existing pieces, never recolor with CSS filters.
 2026-09-05: ticket 12 caps the card at 1024px, so the band this ticket measured as 272px
 at 1440 is now 152px. Re-measure against the mock before prototyping; the gap may be
 small enough to close by nudging the existing pieces outward.
+
+2026-09-06: ticket 16 moved every piece's placement into inline custom properties
+(`--desk-x/y/w` for desktop) and added a phone placement beside them. Nudging
+the desktop scatter outward is now a matter of editing those values; still open.
