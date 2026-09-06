@@ -79,6 +79,12 @@ h1.script{
   margin: 0 auto clamp(29px, 3.33vw, 48px);
 }
 
+/* the hard break lands "to" alone on a line once the column drops under the 280px
+   text width; letting the copy wrap on its own reads better than a one-word line */
+@media (max-width:359.98px){
+  .invite br{ display:none; }
+}
+
 .date-block{
   font-family:'Oswald', sans-serif;
   font-weight:400;
