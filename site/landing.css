@@ -98,9 +98,12 @@
 }
 .env-back{ z-index:0; }
 /* the front plate's transparent top would otherwise sit over every item and take
-   their clicks; the clip follows the flaps and pocket so only the paper is hit */
+   their clicks, so the pocket's opaque outline is traced as the clip: the paper edge
+   runs from 54% at the sides down to 73% across the centre, and a clip also bounds
+   hit-testing, so only the paper is hit */
 .env-front{
   z-index:5;
+  clip-path: polygon(0 50.5%, 39.5% 72.2%, 58.5% 72.2%, 100% 50.5%, 100% 100%, 0 100%);
 }
 
 /* each item is a link to its own image: without the script that opens the image
@@ -113,22 +116,23 @@
 .pop img{ display:block; width:100%; height:auto; }
 .pop:focus-visible{ outline: 3px solid var(--ink); outline-offset: 4px; }
 
-/* Every item dips below the front pocket's top edge so the pocket occludes it, and
-   clears that edge by enough to still read. The two strips fan out as a pair on the
-   left, the ticket stands centre front as the payoff, and the cats peek over its right
-   shoulder. Stacking is explicit rather than left to DOM order: the ticket's rotated
-   box is much wider than the ticket, and it buries whatever paints before it. */
+/* Every item but the cats dips below the front pocket's top edge so the pocket
+   occludes it, and clears that edge by enough to still read. The strips fan out one to
+   each side, the ticket stands centre front as the payoff, and the cats peek over its
+   top edge from behind. Stacking is explicit rather than left to DOM order: the
+   ticket's rotated box is much wider than the ticket, and it buries whatever paints
+   before it. */
 /* the strips are nearly four times taller than wide, so at this size they sit deep
    in the pocket to keep their tops below the envelope's back flap */
-.pop--strip1{ left:6%;  bottom:6%; width:23%; z-index:1; }
-.pop--strip2{ left:17%; bottom:4%; width:23%; z-index:2; }
+.pop--strip1{ left:7%;  bottom:6%; width:23%; z-index:1; }
+.pop--strip2{ right:7%; bottom:6%; width:23%; z-index:2; }
 /* the cats' hats leave a third of the plate empty above the heads, so the plate sits
-   higher than the faces suggest; its right edge runs to the flap so the black cat
-   clears the ticket */
-.pop--cats  { right:-1%; bottom:46%; width:46%; z-index:3; }
+   higher than the faces suggest: the faces fill its lower half and stand whole above
+   the ticket's top edge, with the hats stopping short of the lead-in line */
+.pop--cats  { left:28%; bottom:61%; width:44%; z-index:3; }
 /* the pocket dips lowest at the centre, so the ticket can sit deepest and still show
-   its face */
-.pop--ticket{ left:27%; bottom:26%; width:38%; z-index:4; }
+   its headline and bow; it sits this low to leave the cats room above it */
+.pop--ticket{ left:31%; bottom:12%; width:38%; z-index:4; }
 
 /* ---------------------------------------------------------------------------
    Motion. Every animated element declares its own full shorthand: a shared
@@ -285,6 +289,8 @@
   /* at this size the strips' tops reach the lead-in line, so they lose a little width
      and with it a lot of height */
   .pop--strip1, .pop--strip2{ width:21%; }
+  /* and the hats would touch it, so the cats sit a shade lower on the ticket */
+  .pop--cats{ bottom:57%; }
 }
 
 /* .pop needs no rule here: landing.js never adds .motion under reduced motion, so the

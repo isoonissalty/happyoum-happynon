@@ -78,15 +78,34 @@ for (const [width, height] of VIEWPORTS) {
       return fr.bottom;
     };
 
+    // a die-cut plate carries empty rows above its art (the cats' hats leave a third
+    // of theirs clear), so an item's top is the first opaque row of its image, as a
+    // fraction of the image's height
+    const artTop = (img) => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      const x = c.getContext('2d');
+      x.drawImage(img, 0, 0);
+      const a = x.getImageData(0, 0, c.width, c.height).data;
+      for (let row = 0; row < c.height; row++) {
+        for (let col = 0; col < c.width; col += 4) {
+          if (a[(row * c.width + col) * 4 + 3] > 128) return row / c.height;
+        }
+      }
+      return 0;
+    };
+
     // an item's real outline is its rotated box, not the axis-aligned rect around it:
     // the strips lean 12deg, and the upright rect around a leaning strip reaches into
-    // copy the strip itself clears
+    // copy the strip itself clears. The box starts at the art, not the plate.
     const corners = (el) => {
       const b = el.getBoundingClientRect();
       const cx = b.left + b.width / 2, cy = b.top + b.height / 2;
       const w = el.offsetWidth / 2, h = el.offsetHeight / 2;
+      const top = -h + artTop(el.querySelector('img')) * el.offsetHeight;
       const mtx = new DOMMatrix(getComputedStyle(el).transform);
-      return [[-w, -h], [w, -h], [w, h], [-w, h]].map(([x, y]) => {
+      return [[-w, top], [w, top], [w, h], [-w, h]].map(([x, y]) => {
         const p = mtx.transformPoint(new DOMPoint(x, y));
         return [cx + p.x, cy + p.y];
       });
@@ -105,9 +124,23 @@ for (const [width, height] of VIEWPORTS) {
       boxH: r('.envelope').height,
       pops: [...document.querySelectorAll('.pop')].map(e => {
         const b = e.getBoundingClientRect();
+        const x = b.left + b.width / 2, pocketTop = pocketTopAt(x);
+        // the front plate's transparent top sits over every item, so its clip has to
+        // give the items back their clicks: some point of the visible part, walked down
+        // the item's centre column, must hit-test to the item itself
+        let clickable = false;
+        for (let y = b.top + 2; y < pocketTop && !clickable; y += 4) {
+          const hit = document.elementFromPoint(x, y);
+          clickable = !!hit && hit.closest('.pop') === e;
+        }
         return { cls: e.className, left: b.left, right: b.right, top: b.top, bottom: b.bottom,
-                 pocketTop: pocketTopAt(b.left + b.width / 2), quad: corners(e) };
+                 pocketTop, quad: corners(e), clickable };
       }),
+      // and the paper itself still takes the click, so a tap on the pocket replays the pop
+      paperHit: (() => {
+        const hit = document.elementFromPoint(fr.left + fr.width / 2, fr.bottom - fr.height * .15);
+        return !!hit && hit.classList.contains('env-front');
+      })(),
     };
   });
 
@@ -139,10 +172,20 @@ for (const [width, height] of VIEWPORTS) {
     // so a fixed pixel bound is twice as strict there for a composition that is identical.
     const tuck = (p.bottom - p.pocketTop) / m.boxH;
     const show = (p.pocketTop - p.top) / m.boxH;
-    if (tuck < 0.03) bad(`${p.cls} tucks only ${(tuck * 100).toFixed(1)}% behind the pocket`);
+    // the cats peek over the ticket rather than the pocket, so the ticket's top edge
+    // stands in for the pocket's: they must dip behind it and still show above it
+    const ticket = m.pops.find(q => q.cls.includes('pop--ticket'));
+    if (p.cls.includes('pop--cats')) {
+      const tuckT = (p.bottom - ticket.top) / m.boxH;
+      const showT = (ticket.top - p.top) / m.boxH;
+      if (tuckT < 0.03) bad(`${p.cls} tucks only ${(tuckT * 100).toFixed(1)}% behind the ticket`);
+      if (showT < 0.15) bad(`${p.cls} shows only ${(showT * 100).toFixed(1)}% above the ticket`);
+    } else if (tuck < 0.03) bad(`${p.cls} tucks only ${(tuck * 100).toFixed(1)}% behind the pocket`);
     if (show < 0.15) bad(`${p.cls} shows only ${(show * 100).toFixed(1)}% above the pocket`);
     if (overlaps(p.quad, grow(m.lead, 8))) bad(`${p.cls} overlaps the lead-in line`);
+    if (!p.clickable) bad(`${p.cls} cannot be clicked: something covers its visible part`);
   }
+  if (!m.paperHit) bad('the pocket does not take the click, so a tap cannot replay the pop');
 
   console.log(`  doc ${m.docH}/${m.winH} card ${(m.cardBottom - m.cardTop).toFixed(0)} envelope ${m.boxH.toFixed(0)} waves ${waves.top.toFixed(0)}/${waves.bottom.toFixed(0)}`);
   await page.close();
