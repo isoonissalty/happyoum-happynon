@@ -43,6 +43,8 @@
 
 .invited{
   position:relative;
+  margin-top: 10px;
+  margin-bottom: 10px;
   font-size: min(clamp(56px, 6.5vw, 96px), 9svh);
 }
 
