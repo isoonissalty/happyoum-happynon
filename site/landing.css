@@ -196,12 +196,12 @@
 }
 
 /* ---------------------------------------------------------------------------
-   The viewer: one item from the envelope, large, over a dimmed page.
+   The viewer: one item from the envelope beside its item card, over a dimmed page.
    --------------------------------------------------------------------------- */
 
 .viewer{
   /* the dialog fills the viewport so a click anywhere off the picture lands on it
-     and closes; the picture itself is the only opaque thing inside */
+     and closes; the picture and the card are the only opaque things inside */
   position:fixed;
   inset:0;
   width:100%;
@@ -222,9 +222,24 @@
   -webkit-backdrop-filter: blur(6px);
 }
 
+/* the body fills the dialog's padded box so its children can be measured against it;
+   landing.js treats a click on it, like one on the dialog, as a click off the picture */
+.viewer-body{
+  --card-w: clamp(240px, 24vw, 320px);
+  --gap: clamp(16px, 2.5vw, 32px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: var(--gap);
+  width:100%;
+  height:100%;
+}
+
 .viewer-img{
-  max-width:100%;
-  max-height: calc(100svh - 2 * clamp(16px, 4vw, 48px));
+  /* the picture leaves the card room: about 58% of the window tall, and never wider
+     than what the row has left once the card and the gap are placed */
+  max-width: min(60vw, calc(100% - var(--card-w) - var(--gap)));
+  max-height: 58svh;
   width:auto;
   height:auto;
   border-radius:6px;
@@ -237,6 +252,53 @@
 
 @keyframes viewer-in{
   from{ opacity:0; transform: scale(.88); }
+}
+
+/* the item card: a game tooltip in the invitation's own colours. The border carries
+   the rarity, the dashed rules split identity from stats from lore, and the flavour
+   line is in the script face so it reads in the invitation's handwriting. */
+.item-card{
+  --rarity: var(--mint);
+  flex: 0 0 auto;
+  width: var(--card-w);
+  padding: 18px 20px 16px;
+  background: var(--cream);
+  border: 2px solid var(--rarity);
+  border-radius:14px;
+  color: var(--ink);
+  text-align:left;
+  filter: drop-shadow(0 12px 28px rgba(0,0,0,.35));
+  cursor: var(--wand), default;
+  animation: viewer-in .32s var(--pop-ease) 80ms both;
+}
+.item-card--rare{ --rarity: var(--mint); }
+.item-card--epic{ --rarity: var(--lavender); }
+.item-card--legendary{ --rarity: var(--gold); }
+
+.item-name{
+  font: 600 clamp(18px, 1.4vw, 21px)/1.2 'Quicksand', sans-serif;
+}
+.item-rarity{
+  margin-top:4px;
+  font-size:14px;
+  font-weight:500;
+  /* the pastel rarity tints sink into cream, so the line is mostly ink with a cast of
+     the rarity; the border carries the colour itself */
+  color: color-mix(in oklab, var(--rarity), var(--ink) 82%);
+}
+.item-stats{
+  list-style:none;
+  margin: 12px 0;
+  padding: 10px 0;
+  border-block: 1px dashed rgba(74, 85, 96, .28);
+  font-size:14.5px;
+  font-weight:500;
+  line-height:1.5;
+  color: var(--label);
+}
+.item-flavour{
+  font-size:26px;
+  line-height:1.15;
 }
 
 .viewer-close{
@@ -274,7 +336,16 @@
   }
   .underline{ animation:none; stroke-dashoffset:0; }
   .tag{ transition:none; }
-  .viewer-img{ animation:none; }
+  .viewer-img, .item-card{ animation:none; }
+}
+
+/* a phone: the card goes under the picture, and the picture gives up a little height
+   so the pair still fits the screen without scrolling */
+@media (max-width: 719px){
+  .viewer-body{ flex-direction:column; gap:14px; }
+  .viewer-img{ max-width:100%; max-height:56svh; }
+  .item-card{ width: min(100%, 360px); padding: 14px 16px 12px; }
+  .item-flavour{ font-size:23px; }
 }
 
 /* a short window - a laptop with browser chrome, a phone on its side - trades envelope
@@ -291,6 +362,8 @@
   .pop--strip1, .pop--strip2{ width:21%; }
   /* and the hats would touch it, so the cats sit a shade lower on the ticket */
   .pop--cats{ bottom:57%; }
+  /* the card beside the picture has to clear the window's top and bottom too */
+  .viewer-img{ max-height:52svh; }
 }
 
 /* .pop needs no rule here: landing.js never adds .motion under reduced motion, so the

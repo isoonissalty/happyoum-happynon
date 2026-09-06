@@ -36,6 +36,12 @@ the left, the ticket centre front, the cat heads peeking over its right shoulder
 Positioned against the front pocket's top edge, a V that `landing-check.mjs` reads off
 `envelope-front.png` itself at each item's column.
 
+Clicking one opens the **viewer**: the item's picture, about 58% of the window tall,
+beside its **item card** - a game tooltip in the site's colours with a name, a rarity
+line (mint Rare for the strips, lavender Epic for the cats, gold Legendary for the ticket),
+stat lines and a flavour quote in the script face. On a phone the card sits under the
+picture. The cards are static markup in `index.html` so the copy is edited in place.
+
 ## Art
 
 Hand-drawn assets under `site/assets/`. `assets/landing/` holds the real envelope, strips,

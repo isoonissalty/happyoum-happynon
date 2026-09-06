@@ -50,7 +50,7 @@ for (const [width, height] of VIEWPORTS) {
 
   // this is a geometry check, so it must not depend on the entrance timing: killing
   // every animation lands the composition instantly
-  await page.addStyleTag({ content: '.pop{ transition: none !important; } .panel > *{ animation: none !important; opacity: 1 !important; }' });
+  await page.addStyleTag({ content: '.pop{ transition: none !important; } .panel > *, .viewer-img, .item-card{ animation: none !important; opacity: 1 !important; }' });
   await page.evaluate(() => document.querySelectorAll('.pop').forEach(e => e.classList.add('is-in')));
   await page.waitForTimeout(50);
 
@@ -188,6 +188,56 @@ for (const [width, height] of VIEWPORTS) {
   if (!m.paperHit) bad('the pocket does not take the click, so a tap cannot replay the pop');
 
   console.log(`  doc ${m.docH}/${m.winH} card ${(m.cardBottom - m.cardTop).toFixed(0)} envelope ${m.boxH.toFixed(0)} waves ${waves.top.toFixed(0)}/${waves.bottom.toFixed(0)}`);
+
+  // the viewer: the tallest item and the widest, since the height cap binds one and the
+  // width cap the other, each beside its own item card
+  const quad = (b) => grow(b, 0);
+  const isClosed = () => page.waitForFunction(() => !document.querySelector('.viewer').open && !document.querySelector('.viewer-img').hasAttribute('src'), null, { timeout: 2000 }).then(() => true, () => false);
+  for (const sel of ['.pop--ticket', '.pop--cats']) {
+    await page.evaluate((s) => document.querySelector(s).click(), sel);
+    await page.waitForSelector('.viewer[open]');
+    await page.waitForFunction(() => document.querySelector('.viewer-img').naturalWidth > 0);
+    const v = await page.evaluate((s) => {
+      const box = (e) => e.getBoundingClientRect().toJSON();
+      const shown = [...document.querySelectorAll('.item-card')].filter((e) => !e.hidden);
+      return {
+        body: box(document.querySelector('.viewer-body')),
+        img: box(document.querySelector('.viewer-img')),
+        card: shown.map(box),
+        cardFor: shown.map((e) => e.dataset.item),
+        want: document.querySelector(s).dataset.item,
+        docW: document.documentElement.scrollWidth,
+      };
+    }, sel);
+    // the picture is sized to leave room for the card: never over 60% of the window, and
+    // the tall ticket - the one the height cap binds - never so small it stops being the
+    // point, except on a phone on its side. The wide cats are width-bound on a phone.
+    const share = v.img.height / m.winH;
+    if (share > 0.60) bad(`${sel} viewer picture is ${(share * 100).toFixed(0)}% of the window's height`);
+    if (sel === '.pop--ticket' && height >= FIT_MIN_HEIGHT && share < 0.40) bad(`${sel} viewer picture is only ${(share * 100).toFixed(0)}% of the window's height`);
+    // both sit inside the dialog's padded box, not merely the window
+    const inside = (b) => b.left >= v.body.left - 1 && b.right <= v.body.right + 1 && b.top >= v.body.top - 1 && b.bottom <= v.body.bottom + 1;
+    if (!inside(v.img)) bad(`${sel} viewer picture leaves the dialog's padded box`);
+    if (v.card.length !== 1) bad(`${sel} viewer shows ${v.card.length} item cards`);
+    else {
+      if (v.cardFor[0] !== v.want) bad(`${sel} viewer shows the ${v.cardFor[0]} card`);
+      const c = v.card[0];
+      if (!inside(c)) bad(`${sel} item card leaves the dialog's padded box (${c.left.toFixed(0)},${c.top.toFixed(0)})..(${c.right.toFixed(0)},${c.bottom.toFixed(0)})`);
+      if (overlaps(quad(c), quad(v.img))) bad(`${sel} item card overlaps the picture`);
+      // a click in the gap between picture and card is a click off the picture, and closes
+      const i = v.img;
+      const gap = c.left >= i.right ? [(i.right + c.left) / 2, (i.top + i.bottom) / 2]
+                                    : [(i.left + i.right) / 2, (i.bottom + c.top) / 2];
+      await page.mouse.click(...gap);
+      if (!await isClosed()) bad(`${sel} viewer stays open on a click between picture and card`);
+      await page.evaluate((s) => document.querySelector(s).click(), sel);
+      await page.waitForSelector('.viewer[open]');
+    }
+    if (v.docW > m.winW) bad(`${sel} viewer scrolls sideways: ${v.docW} > ${m.winW}`);
+
+    await page.keyboard.press('Escape');
+    if (!await isClosed()) bad(`${sel} viewer does not close on Escape`);
+  }
   await page.close();
 }
 

@@ -71,6 +71,10 @@ Standing constraints settled while charting:
   rise in, the map leans in; one easing vocabulary in `base.css`, all off under reduced
   motion.
 
+- [Viewer: smaller picture, item card beside it](issues/15-viewer-item-card.md) - the
+  picture caps at 58svh (56 on a phone, 52 in a short window) and each item shows a
+  game-tooltip card with placeholder copy; `landing-check.mjs` now opens the viewer.
+
 ## Not yet specified
 
 - **How far the visual fix reaches.** Whether the fix lives in `landing.css` alone or has

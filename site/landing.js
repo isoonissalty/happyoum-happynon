@@ -15,18 +15,25 @@
   // simply opens the picture; the viewer only steps in where it can.
   var viewer = document.querySelector('.viewer');
   var viewerImg = viewer && viewer.querySelector('.viewer-img');
+  var cards = viewer ? viewer.querySelectorAll('.item-card') : [];
   if (viewer && typeof viewer.showModal === 'function') {
     each(function (p) {
       p.addEventListener('click', function (e) {
         e.preventDefault();
         viewerImg.src = p.getAttribute('href');
         viewerImg.alt = p.getAttribute('aria-label') || '';
+        // the cards are static markup so the copy stays editable; only the item's shows
+        for (var i = 0; i < cards.length; i++) {
+          cards[i].hidden = cards[i].getAttribute('data-item') !== p.getAttribute('data-item');
+        }
         viewer.showModal();
       });
     });
-    // a click on the dialog itself is a click off the picture
+    // a click on the dialog, or on the body's gap between picture and card, is a click
+    // off the picture
     viewer.addEventListener('click', function (e) {
-      if (e.target === viewer || e.target.closest('.viewer-close')) viewer.close();
+      var off = e.target === viewer || e.target.classList.contains('viewer-body');
+      if (off || e.target.closest('.viewer-close')) viewer.close();
     });
     // an empty src stops the last picture flashing up before the next one loads
     viewer.addEventListener('close', function () { viewerImg.removeAttribute('src'); });

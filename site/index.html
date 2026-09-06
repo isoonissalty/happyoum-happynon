@@ -26,10 +26,10 @@
 
     <div class="envelope" title="Open it again">
       <img class="env-back" src="assets/landing/envelope-back.png" alt="" width="1219" height="1476">
-      <a class="pop pop--strip1" href="assets/landing/photo-strip-1.jpg" aria-label="View the first photo strip" style="--rot:-12deg;--ox:90%;--oy:45%;--delay:0ms"><img src="assets/landing/photo-strip-1.jpg" alt="" width="332" height="1268"></a>
-      <a class="pop pop--strip2" href="assets/landing/photo-strip-2.jpg" aria-label="View the second photo strip" style="--rot:12deg;--ox:-90%;--oy:45%;--delay:90ms"><img src="assets/landing/photo-strip-2.jpg" alt="" width="332" height="1268"></a>
-      <a class="pop pop--cats"   href="assets/landing/cat_heads.png"     aria-label="View the cats" style="--rot:5deg;--ox:0%;--oy:60%;--delay:200ms"><img src="assets/landing/cat_heads.png" alt="" width="1040" height="952"></a>
-      <a class="pop pop--ticket" href="assets/landing/ticket.png"        aria-label="View the ticket" style="--rot:-4deg;--ox:0%;--oy:70%;--delay:330ms"><img src="assets/landing/ticket.png" alt="" width="1241" height="1750"></a>
+      <a class="pop pop--strip1" href="assets/landing/photo-strip-1.jpg" data-item="strip1" aria-label="View the first photo strip" style="--rot:-12deg;--ox:90%;--oy:45%;--delay:0ms"><img src="assets/landing/photo-strip-1.jpg" alt="" width="332" height="1268"></a>
+      <a class="pop pop--strip2" href="assets/landing/photo-strip-2.jpg" data-item="strip2" aria-label="View the second photo strip" style="--rot:12deg;--ox:-90%;--oy:45%;--delay:90ms"><img src="assets/landing/photo-strip-2.jpg" alt="" width="332" height="1268"></a>
+      <a class="pop pop--cats"   href="assets/landing/cat_heads.png"     data-item="cats"   aria-label="View the cats" style="--rot:5deg;--ox:0%;--oy:60%;--delay:200ms"><img src="assets/landing/cat_heads.png" alt="" width="1040" height="952"></a>
+      <a class="pop pop--ticket" href="assets/landing/ticket.png"        data-item="ticket" aria-label="View the ticket" style="--rot:-4deg;--ox:0%;--oy:70%;--delay:330ms"><img src="assets/landing/ticket.png" alt="" width="1241" height="1750"></a>
       <img class="env-front" src="assets/landing/envelope-front.png" alt="" width="1219" height="1476">
     </div>
 
@@ -39,9 +39,58 @@
   </section>
   </div>
 </main>
-<dialog class="viewer" aria-label="Photo viewer">
+<dialog class="viewer" aria-label="Item viewer">
   <button class="viewer-close" type="button" aria-label="Close">&times;</button>
-  <img class="viewer-img" alt="">
+  <div class="viewer-body">
+    <img class="viewer-img" alt="">
+
+    <!-- item cards: one per envelope item, shown beside its picture. Placeholder copy -
+         edit the text in place. The landing withholds the date and venue, so keep them
+         off the cards too. -->
+    <aside class="item-card item-card--rare" data-item="strip1" hidden>
+      <h3 class="item-name">Photo Strip I</h3>
+      <p class="item-rarity"><span aria-hidden="true">✦</span> Rare · Photo booth</p>
+      <ul class="item-stats">
+        <li>+4 Snapshots of us</li>
+        <li>Oversea trip together</li>
+        <li>Seoul, Hongkong, Fukuoka</li>
+      </ul>
+      <p class="script item-flavour">"Let's go everywhere together."</p>
+    </aside>
+
+    <aside class="item-card item-card--rare" data-item="strip2" hidden>
+      <h3 class="item-name">Photo Strip II</h3>
+      <p class="item-rarity"><span aria-hidden="true">✦</span> Rare · Photo booth</p>
+      <ul class="item-stats">
+        <li>+4 Snapshots of us</li>
+        <li>Oum and her finger V pose</li>
+        <li>Isoon's dump smile</li>
+      </ul>
+      <p class="script item-flavour">"Sweet sweet memories."</p>
+    </aside>
+
+    <aside class="item-card item-card--epic" data-item="cats" hidden>
+      <h3 class="item-name">Hedhorm &amp; Ponzu</h3>
+      <p class="item-rarity"><span aria-hidden="true">✦</span> Epic · Companions</p>
+      <ul class="item-stats">
+        <li>Partner in-crime</li>
+        <li>Double Trouble</li>
+        <li>Bless you guys with luv</li>
+      </ul>
+      <p class="script item-flavour">"Placeholder flavour text for the cats."</p>
+    </aside>
+
+    <aside class="item-card item-card--legendary" data-item="ticket" hidden>
+      <h3 class="item-name">Wedding Ticket</h3>
+      <p class="item-rarity"><span aria-hidden="true">✦</span> Legendary · Unique</p>
+      <ul class="item-stats">
+        <li>+1 Seat at the party</li>
+        <li>Redeem on the big day</li>
+        <li>Binds when picked up</li>
+      </ul>
+      <p class="script item-flavour">"Placeholder flavour text for the ticket."</p>
+    </aside>
+  </div>
 </dialog>
 <script src="landing.js" defer></script>
 <script src="pixie.js" defer data-hands-free></script>
