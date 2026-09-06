@@ -285,6 +285,13 @@ h1.script{
   .actions .deco{ display:none; }
 }
 
+/* the desktop scatter is dense enough to fill a wide margin band; beside a
+   single label on a phone the same count reads as clutter, so the small filler
+   pieces only appear once that band exists */
+@media (max-width:1199.98px){
+  .deco--desk{ display:none; }
+}
+
 /* these pieces sit beside content that on a 320px window already reaches within
    a few px of the wave band, so they are dropped rather than set on the wave */
 @media (max-width:359.98px){
