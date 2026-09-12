@@ -47,6 +47,20 @@ line (mint Rare for the strips, lavender Epic for the cats, gold Legendary for t
 stat lines and a flavour quote in the script face. On a phone the card sits under the
 picture. The cards are static markup in `index.html` so the copy is edited in place.
 
+## Gallery
+
+The invitation's last section, under the RSVP buttons, headed "Us, lately". Three
+**rolls** - "Oum, by Non", "Non, by Oum", "Us two" - of 24 photos each.
+
+A **tile** is one photo in a roll's grid: a square, three to a row at every window
+size. Not "thumbnail", which names the file a tile shows rather than the thing on the
+page.
+
+Tapping a tile opens the **lightbox**: that photo alone on a scrim, with arrows, swipe
+and Escape, wrapping at the ends of its own roll and never crossing into the next.
+Deliberately not the landing's **viewer** - the viewer carries an item card, the
+lightbox is the picture and nothing else.
+
 ## Art
 
 Hand-drawn assets under `site/assets/`. `assets/landing/` holds the real envelope, strips,
