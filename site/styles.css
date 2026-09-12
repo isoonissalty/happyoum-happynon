@@ -225,10 +225,6 @@ h1.script{
 
 .actions{
   margin-top: clamp(48px, 5.56vw, 80px);
-  /* the gap is measured to the top of the bottom wave's band, not to the card
-     edge - the wave's crest rises ~7/8 of --wave-hb into the card, so without
-     the extra term the buttons sit right on the crest */
-  padding-bottom: calc(clamp(29px, 3.33vw, 48px) + var(--wave-hb) - var(--content-pad-y));
   display:flex;
   justify-content:center;
   align-items:center;
@@ -239,6 +235,157 @@ h1.script{
 @media (max-width:480px){
   .actions{ flex-direction:column; }
 }
+
+/* ---------------------------------------------------------------------------
+   The gallery: three rolls of 24, three tiles a row at every width.
+
+   The grid rides the content column rather than a tile size of its own, so the
+   tiles shrink with the card inset instead of forcing the page wider. Each tile
+   is square because the fill inside it is, which also leaves the tile's own box
+   free to take the photo once the files land.
+   --------------------------------------------------------------------------- */
+.gallery{
+  margin-top: var(--section-gap);
+  /* the gap is measured to the top of the bottom wave's band, not to the card
+     edge - the wave's crest rises ~7/8 of --wave-hb into the card, so without
+     the extra term the last row sits right on the crest */
+  padding-bottom: calc(clamp(29px, 3.33vw, 48px) + var(--wave-hb) - var(--content-pad-y));
+}
+
+.roll + .roll{ margin-top: clamp(40px, 4.44vw, 64px); }
+
+.roll h3{
+  color: var(--label);
+  font-family:'Quicksand', sans-serif;
+  font-weight:600;
+  font-size: clamp(15px, 1.67vw, 24px);
+  margin-bottom: clamp(14px, 1.67vw, 24px);
+}
+
+.tiles{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(6px, 1.11vw, 16px);
+}
+
+.tile{
+  display:block;
+  border-radius:6px;
+  overflow:hidden;
+  transition: translate .25s var(--ease-soft);
+}
+
+.tile-fill{
+  display:block;
+  aspect-ratio:1;
+  background: var(--tint);
+  transition: scale .4s var(--ease-soft);
+}
+
+/* the placeholder tints cycle over four while the grid is three wide, so the
+   pastels run diagonally instead of striping the columns */
+.tile:nth-child(4n+1) .tile-fill{ --tint: var(--mint); }
+.tile:nth-child(4n+2) .tile-fill{ --tint: var(--lavender); }
+.tile:nth-child(4n+3) .tile-fill{ --tint: color-mix(in oklab, var(--gold), var(--cream) 35%); }
+.tile:nth-child(4n)   .tile-fill{ --tint: color-mix(in oklab, var(--mint), var(--lavender)); }
+
+/* a tile answers the pointer the way the map does - it is the other picture-link
+   on the page */
+@media (hover:hover) and (pointer:fine){
+  .tile:hover{ translate: 0 -3px; }
+  .tile:hover .tile-fill{ scale: 1.06; }
+}
+.tile:focus-visible{ outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* ---------------------------------------------------------------------------
+   The lightbox: one photo on a scrim, arrows, Escape, click off. Deliberately
+   not the landing's viewer - there is no item card here.
+   --------------------------------------------------------------------------- */
+.lightbox{
+  /* the dialog fills the viewport so a click anywhere off the picture lands on it */
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  max-width:none;
+  max-height:none;
+  padding: clamp(16px, 4vw, 48px);
+  border:0;
+  background:transparent;
+  display:none;
+  place-items:center;
+  cursor: var(--wand-lit), zoom-out;
+}
+.lightbox[open]{ display:grid; }
+.lightbox::backdrop{
+  background: rgba(74, 85, 96, .82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* the frame, not the img, carries the square and the tint: sizing a broken img with
+   width/height paints Chrome's broken-image icon over the tint, and sizing it with
+   min-width AND min-height would stretch a real photo off its own proportions once
+   the files land. Around an img left to size itself, both stay true. */
+.lb-frame{
+  display:inline-grid;
+  place-items:center;
+  min-width: min(78vw, 58svh);
+  min-height: min(78vw, 58svh);
+  background: var(--tint, var(--lavender));
+  border-radius:6px;
+  filter: drop-shadow(0 18px 40px rgba(0,0,0,.4));
+  cursor: var(--wand), default;
+  animation: lightbox-in .28s var(--pop-ease);
+}
+
+.lb-img{
+  display:block;
+  width:auto;
+  height:auto;
+  max-width: min(88vw, 1100px);
+  max-height: 78svh;
+  border-radius:6px;
+}
+
+@keyframes lightbox-in{
+  from{ opacity:0; transform: scale(.9); }
+}
+
+.lb-close, .lb-prev, .lb-next{
+  position:absolute;
+  border:0;
+  background:transparent;
+  color: var(--cream);
+  font-family:'Quicksand', sans-serif;
+  font-weight:600;
+  line-height:1;
+  padding: 8px 14px;
+  opacity:.75;
+  transition: opacity .2s ease, scale var(--press) ease-out;
+}
+.lb-close:hover, .lb-prev:hover, .lb-next:hover{ opacity:1; }
+.lb-close:active, .lb-prev:active, .lb-next:active{ scale:.92; }
+.lb-close:focus-visible, .lb-prev:focus-visible, .lb-next:focus-visible{
+  outline: 3px solid var(--cream);
+  outline-offset: 2px;
+  opacity:1;
+}
+
+.lb-close{
+  top: clamp(12px, 2.5vw, 28px);
+  right: clamp(12px, 2.5vw, 28px);
+  font-size: clamp(30px, 3.5vw, 44px);
+}
+
+/* the arrows are buttons rather than keys alone: a finger has no ArrowRight */
+.lb-prev, .lb-next{
+  top:50%;
+  translate: 0 -50%;
+  font-size: clamp(40px, 5vw, 64px);
+}
+.lb-prev{ left: clamp(2px, 1.5vw, 20px); }
+.lb-next{ right: clamp(2px, 1.5vw, 20px); }
 
 /* decorations are positioned against their own section, not the card - a
    page-wide fixed top drifts into the wrong section once clamp() typography
@@ -253,7 +400,9 @@ h1.script{
    card's centre line instead, beside whichever piece of content is narrow
    enough to leave room: the eyebrow and date, the section labels, the agenda
    column, and the gaps between sections. */
-.hero, .dresscode, .agenda, .where, .actions{ position: relative; }
+/* each roll anchors its own pieces: the grid leaves no room beside a row, so a
+   roll's scatter can only sit level with its h3, which is the roll's own top */
+.hero, .dresscode, .agenda, .where, .actions, .gallery, .roll{ position: relative; }
 
 .deco{
   position: absolute;
@@ -365,4 +514,8 @@ h1.script{
   .dresscode img:not(.deco), .maplink, .maplink img, .hashtag{ transition:none; }
   .dresscode img:not(.deco):hover, .maplink:hover{ translate:none; }
   .maplink:hover img, .maplink:focus-visible img{ scale:none; }
+  .tile, .tile-fill, .lb-close, .lb-prev, .lb-next{ transition:none; }
+  .tile:hover{ translate:none; }
+  .tile:hover .tile-fill{ scale:none; }
+  .lb-frame{ animation:none; }
 }

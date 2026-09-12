@@ -19,6 +19,23 @@ single viewport at nine window sizes including short laptops.
 content, text by its glyph extent, and asserts how many render at each width - so a
 placement that hides the scatter cannot pass as "nothing overlaps".
 
+It also holds the gallery: three tiles a row at every width in that table, each tile
+square and inside the content column, and the page never laid out wider than its window.
+Then it drives the lightbox: a tile opens it, the arrows and a swipe turn the photo and
+wrap inside that roll rather than crossing into the next, and Escape and a click off close
+it. Last it checks the two things that only show while the photos are missing: every tile
+is still a plain link to its own file with the script off, and an absent photo paints as
+one flat tinted square rather than the browser's broken-image glyph.
+
+That last pair rests on how an engine draws a broken image and how it sizes a real one,
+which each decides for itself, so they are checked in WebKit and Firefox too. Those two
+are optional: install them with
+
+    npx playwright install webkit firefox
+
+and the check skips them with a note when they are absent, so a Chrome-only checkout still
+passes.
+
 `regress.mjs` compares two rendered pages and takes both URLs:
 
     node tools/regress.mjs "file:///path/to/a.html" "file:///path/to/b.html"

@@ -6,20 +6,28 @@
  * of content - images by their box, text by the extent of its glyphs, because a
  * centred paragraph's element box spans the whole column. The count is asserted
  * too, so a placement that hides the scatter cannot pass as "nothing overlaps". */
-import { chromium } from 'playwright';
+import { chromium, firefox, webkit } from 'playwright';
 
 const site = new URL('../site/', import.meta.url);
 const invitation = new URL('invitation.html', site).href;
 
-// width -> pieces that must render. 28 in all; the two beside the buttons hide while the
-// buttons sit side by side, and 13 more hide on a 320px window (see .deco in styles.css)
+// width -> pieces that must render. 39 in all, and three rules thin them (see .deco in
+// styles.css): the 13 deco--desk fillers need the margin band, so they only show from
+// 1200 up; the two beside the buttons hide while the buttons sit side by side; and the
+// 9 deco--tight pieces hide on a 320px window.
 const WIDTHS = [
-  [320, 15], [360, 28], [390, 28], [430, 28], [480, 28],
-  [768, 26], [900, 26], [1024, 26], [1100, 26], [1199, 26],
-  [1440, 28], [1920, 28],
+  [320, 17], [360, 26], [390, 26], [430, 26], [480, 26],
+  [768, 24], [900, 24], [1024, 24], [1100, 24], [1199, 24],
+  [1440, 39], [1920, 39],
 ];
 const EDGE_TOLERANCE = 2;
 const CLEARANCE = 2;
+
+// the gallery's shape: three rolls of 24, three tiles a row. The tile size itself is
+// never asserted in px - it rides the column, which rides the card inset
+const ROLLS = 3;
+const PER_ROLL = 24;
+const TILE_TOLERANCE = 1.5;
 
 const browser = await chromium.launch({ channel: 'chrome' });
 let failures = 0;
@@ -47,10 +55,10 @@ for (const [width, expected] of WIDTHS) {
     const outer = cardEl.getBoundingClientRect();
     const card = { l: outer.left + waveX, r: outer.right - waveX, t: outer.top + waveX, b: outer.bottom - waveBottom };
     const content = [];
-    for (const el of document.querySelectorAll('.content img:not(.deco), .content .btn')) {
+    for (const el of document.querySelectorAll('.content img:not(.deco), .content .btn, .content .tile')) {
       content.push({ name: el.className || el.tagName, ...box(el.getBoundingClientRect()) });
     }
-    for (const el of document.querySelectorAll('.content p, .content h1, .content h2')) {
+    for (const el of document.querySelectorAll('.content p, .content h1, .content h2, .content h3')) {
       const range = document.createRange();
       range.selectNodeContents(el);
       content.push({ name: el.className || el.tagName, ...box(range.getBoundingClientRect()) });
@@ -58,6 +66,14 @@ for (const [width, expected] of WIDTHS) {
     const shown = [...document.querySelectorAll('.deco')].filter((d) => getComputedStyle(d).display !== 'none');
     return {
       card, content,
+      column: box(document.querySelector('.content').getBoundingClientRect()),
+      // body{overflow-x:hidden} hides a spill from a scroll test, so the layout is measured instead
+      pageWidth: document.documentElement.scrollWidth,
+      windowWidth: window.innerWidth,
+      rolls: [...document.querySelectorAll('.roll')].map((roll) => ({
+        name: roll.querySelector('h3').textContent,
+        tiles: [...roll.querySelectorAll('.tile')].map((t) => box(t.getBoundingClientRect())),
+      })),
       shown: shown.map((d) => ({ name: d.getAttribute('src').replace('assets/', ''),
         section: d.parentElement.className, ...box(d.getBoundingClientRect()) })),
     };
@@ -76,6 +92,248 @@ for (const [width, expected] of WIDTHS) {
       if (overlap) bad(`${d.section} ${d.name} sits on ${k.name} (deco x ${Math.round(d.l)}..${Math.round(d.r)} y ${Math.round(d.t)}..${Math.round(d.b)}; content x ${Math.round(k.l)}..${Math.round(k.r)} y ${Math.round(k.t)}..${Math.round(k.b)})`);
     }
   }
+
+  // the gallery: three tiles a row at every width, each square, none past the column
+  if (report.rolls.length !== ROLLS) bad(`${ROLLS} rolls expected, ${report.rolls.length} rendered`);
+  for (const roll of report.rolls) {
+    if (roll.tiles.length !== PER_ROLL) bad(`${roll.name}: ${PER_ROLL} tiles expected, ${roll.tiles.length} rendered`);
+    // rows are clustered rather than keyed on an exact top: fractional column widths
+    // leave neighbours in one row a sub-pixel apart
+    const rows = [];
+    for (const t of roll.tiles) {
+      const row = rows.find((r) => Math.abs(r.top - t.t) < 4);
+      if (row) row.n++; else rows.push({ top: t.t, n: 1 });
+    }
+    for (const r of rows) if (r.n !== 3) bad(`${roll.name}: ${r.n} tiles on the row at y ${Math.round(r.top)}, not 3`);
+    if (rows.length !== PER_ROLL / 3) bad(`${roll.name}: ${rows.length} rows, not ${PER_ROLL / 3}`);
+    for (const t of roll.tiles) {
+      const w = t.r - t.l, h = t.b - t.t;
+      if (Math.abs(w - h) > TILE_TOLERANCE) bad(`${roll.name}: a tile is ${w.toFixed(1)}x${h.toFixed(1)}, not square`);
+      const c = report.column;
+      if (t.l < c.l - EDGE_TOLERANCE || t.r > c.r + EDGE_TOLERANCE) {
+        bad(`${roll.name}: a tile leaves the column: x ${Math.round(t.l)}..${Math.round(t.r)} of ${Math.round(c.l)}..${Math.round(c.r)}`);
+      }
+    }
+  }
+  if (report.pageWidth > report.windowWidth) {
+    bad(`the page lays out ${report.pageWidth}px wide in a ${report.windowWidth}px window`);
+  }
+
+  await page.close();
+}
+
+/* --- the lightbox: arrows and Escape, wrapping inside one roll ---
+   Every assertion here runs under reduced motion, which is where invitation.js
+   returns early: the wiring has to sit above that return or a tile click navigates
+   to the photo's path instead of opening the dialog. */
+// one tile of a roll, by their positions on the page
+const tile = (page, roll, n) => page.locator('.roll').nth(roll).locator('.tile').nth(n);
+
+/* the widest spread between any two pixels of a screenshot, per channel. Decoding
+   happens in the page itself: a canvas is the only PNG reader here that costs no
+   dependency, and the site is meant to keep building with none. */
+const spread = (page, png) => page.evaluate(async (b64) => {
+  const img = new Image();
+  img.src = 'data:image/png;base64,' + b64;
+  await img.decode();
+  const c = document.createElement('canvas');
+  c.width = img.width;
+  c.height = img.height;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  const a = ctx.getImageData(0, 0, c.width, c.height).data;
+  const min = [255, 255, 255], max = [0, 0, 0];
+  for (let i = 0; i < a.length; i += 4) {
+    for (let k = 0; k < 3; k++) {
+      if (a[i + k] < min[k]) min[k] = a[i + k];
+      if (a[i + k] > max[k]) max[k] = a[i + k];
+    }
+  }
+  return max.map((v, k) => v - min[k]);
+}, png.toString('base64'));
+
+// the file name of the photo the lightbox is showing, or null when it is closed
+const showing = (page) => page.evaluate(() => {
+  const d = document.querySelector('.lightbox');
+  if (!d || !d.open) return null;
+  return (d.querySelector('.lb-img').getAttribute('src') || '').split('/').pop();
+});
+
+for (const width of [390, 1440]) {
+  const page = await browser.newPage({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
+  await page.goto(invitation, { waitUntil: 'networkidle' });
+  console.log(`\nlightbox at ${width}px`);
+
+  const before = failures;
+  let at;
+
+  await tile(page, 0, PER_ROLL - 1).click();
+  at = await showing(page);
+  if (at !== 'oum-by-non-24.jpg') bad(`the lightbox opened on ${at}, not the tile that was clicked`);
+
+  // there are no photos yet, so the picture must paint as one plain tint: a broken-image
+  // icon or the alt text showing through would both break the spread
+  const frame = await page.locator('.lb-frame').boundingBox();
+  const inset = 14;   // clears the corner radius, which antialiases against the scrim
+  const channels = await spread(page, await page.screenshot({ clip: {
+    x: frame.x + inset, y: frame.y + inset,
+    width: frame.width - inset * 2, height: frame.height - inset * 2,
+  } }));
+  if (channels.some((s) => s > 4)) bad(`the empty picture is not a plain square: channels spread by ${channels.join('/')}`);
+
+  await page.keyboard.press('ArrowRight');
+  at = await showing(page);
+  if (at !== 'oum-by-non-01.jpg') bad(`past roll 1's last tile the lightbox shows ${at}, not roll 1's first`);
+
+  await page.keyboard.press('ArrowLeft');
+  at = await showing(page);
+  if (at !== 'oum-by-non-24.jpg') bad(`back from roll 1's first tile the lightbox shows ${at}`);
+
+  await page.keyboard.press('Escape');
+  at = await showing(page);
+  if (at !== null) bad(`Escape left the lightbox open on ${at}`);
+
+  // the other end of the same seam: roll 2's first tile wraps to roll 2's last
+  await tile(page, 1, 0).click();
+  await page.keyboard.press('ArrowLeft');
+  at = await showing(page);
+  if (at !== 'non-by-oum-24.jpg') bad(`before roll 2's first tile the lightbox shows ${at}, not roll 2's last`);
+
+  // a click off the picture closes, as it does on the landing
+  await page.mouse.click(6, 6);
+  at = await showing(page);
+  if (at !== null) bad(`a click off the picture left the lightbox open on ${at}`);
+
+  if (failures === before) console.log('  opens, wraps inside its roll, closes on Escape and on a click off');
+  await page.close();
+}
+
+/* --- the finger's arrow key ---
+   A swipe across the scrim ends in a click on the scrim, so this also holds the
+   click-off handler to letting a turned photo stand. */
+{
+  const page = await browser.newPage({
+    viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, reducedMotion: 'reduce',
+  });
+  await page.goto(invitation, { waitUntil: 'networkidle' });
+  console.log('\nswipe');
+  const before = failures;
+
+  await tile(page, 0, 4).click();
+  if (await showing(page) !== 'oum-by-non-05.jpg') bad('a tap did not open the lightbox on a touch screen');
+
+  // a finger through the real input pipeline, so the page sees the touch events a hand makes
+  const cdp = await page.context().newCDPSession(page);
+  const swipe = async (from, to) => {
+    const y = 120;   // above the picture, on the scrim, where a click would otherwise close
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: from, y, id: 1 }] });
+    for (let i = 1; i <= 8; i++) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: from + (to - from) * i / 8, y, id: 1 }] });
+      await page.waitForTimeout(16);
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await page.waitForTimeout(60);
+  };
+
+  await swipe(300, 90);
+  let at = await showing(page);
+  if (at !== 'oum-by-non-06.jpg') bad(`a swipe left showed ${at}, not the next photo`);
+
+  await swipe(90, 300);
+  at = await showing(page);
+  if (at !== 'oum-by-non-05.jpg') bad(`a swipe right showed ${at}, not the one before`);
+
+  if (failures === before) console.log('  a swipe turns the photo and leaves the lightbox open');
+  await cdp.detach();
+  await page.close();
+}
+
+/* --- reduced motion renders the finished section, with nothing in flight --- */
+{
+  const page = await browser.newPage({ viewport: { width: 390, height: 900 }, reducedMotion: 'reduce' });
+  await page.goto(invitation, { waitUntil: 'networkidle' });
+  console.log('\nreduced motion');
+  // the lightbox is opened first: its pieces only carry computed style while the dialog
+  // is, so a closed one would report every animation as absent whether it is or not
+  await tile(page, 0, 0).click();
+  const still = (page) => page.evaluate(() => {
+    const out = [];
+    const sel = '.gallery .tile, .gallery .tile-fill, .gallery h3, .gallery .label,'
+      + ' .lightbox, .lb-frame, .lb-img, .lb-close, .lb-prev, .lb-next';
+    for (const el of document.querySelectorAll(sel)) {
+      const s = getComputedStyle(el);
+      if (s.animationName !== 'none') out.push(`${el.className} runs ${s.animationName}`);
+      if (parseFloat(s.transitionDuration) > 0) out.push(`${el.className} transitions over ${s.transitionDuration}`);
+    }
+    // the gallery itself must also be fully painted, which the lightbox's own pieces
+    // are not expected to be until it opens
+    for (const el of document.querySelectorAll('.gallery .tile, .gallery .tile-fill, .gallery h3, .gallery .label')) {
+      const o = +getComputedStyle(el).opacity;
+      if (o < 0.99) out.push(`${el.className} is at opacity ${o}`);
+    }
+    return out;
+  });
+  const moving = await still(page);
+  for (const m of moving) bad(m);
+  if (!moving.length) console.log('  the gallery and the lightbox are finished and still');
+  await page.close();
+}
+
+/* --- the empty picture, in the other two engines ---
+   The square rests on a browser rendering a broken img as nothing at all, and on it not
+   stretching a real one to the frame's minimum. Each engine decides both for itself, and
+   Chrome is the only one the rest of this file drives. These run when the browsers are
+   installed and say so when they are not, so a checkout with only Chrome still passes. */
+for (const [name, type] of [['webkit', webkit], ['firefox', firefox]]) {
+  let engine;
+  try {
+    engine = await type.launch();
+  } catch {
+    console.log(`\n${name}: not installed, skipped - npx playwright install ${name}`);
+    continue;
+  }
+  const page = await engine.newPage({ viewport: { width: 900, height: 900 }, reducedMotion: 'reduce' });
+  await page.goto(invitation, { waitUntil: 'networkidle' });
+  console.log(`\n${name}`);
+
+  await tile(page, 0, 0).click();
+  const frame = await page.locator('.lb-frame').boundingBox();
+  const inset = 14;
+  const channels = await spread(page, await page.screenshot({ clip: {
+    x: frame.x + inset, y: frame.y + inset,
+    width: frame.width - inset * 2, height: frame.height - inset * 2,
+  } }));
+  if (channels.some((s) => s > 4)) bad(`${name}: the empty picture is not a plain square: channels spread by ${channels.join('/')}`);
+
+  // and a photo that does exist keeps its own proportions inside that same frame
+  const shape = await page.evaluate(async () => {
+    const img = document.querySelector('.lb-img');
+    const done = new Promise((res) => { img.onload = img.onerror = res; });
+    img.src = 'assets/map.png';
+    await done;
+    const r = img.getBoundingClientRect();
+    return { natural: img.naturalWidth / img.naturalHeight, drawn: r.width / r.height };
+  });
+  if (Math.abs(shape.natural - shape.drawn) > 0.01) {
+    bad(`${name}: a real photo is drawn at ${shape.drawn.toFixed(3)}, not its own ${shape.natural.toFixed(3)}`);
+  } else {
+    console.log('  an absent photo is a plain square and a real one keeps its shape');
+  }
+  await page.close();
+  await engine.close();
+}
+
+/* --- with no script at all, every tile is still a link to its photo --- */
+{
+  const page = await browser.newPage({ viewport: { width: 390, height: 900 }, javaScriptEnabled: false });
+  await page.goto(invitation, { waitUntil: 'load' });
+  console.log('\nno script');
+  const hrefs = await page.$$eval('.tile', (els) => els.map((e) => e.getAttribute('href')));
+  if (hrefs.length !== ROLLS * PER_ROLL) bad(`${hrefs.length} tiles with no script, not ${ROLLS * PER_ROLL}`);
+  const shape = /^assets\/gallery\/full\/(oum-by-non|non-by-oum|us-two)-(0[1-9]|1\d|2[0-4])\.jpg$/;
+  const off = hrefs.filter((h) => !shape.test(h || ''));
+  if (off.length) bad(`${off.length} tiles do not link to a photo, the first being ${off[0]}`);
+  else console.log(`  all ${hrefs.length} tiles link to their photo`);
   await page.close();
 }
 
