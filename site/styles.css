@@ -282,6 +282,15 @@ h1.script{
   transition: scale .4s var(--ease-soft);
 }
 
+/* the photo fills the square the fill already holds, so a portrait and a landscape
+   thumb crop to the same tile instead of each setting its own height */
+.tile-fill img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
 /* the placeholder tints cycle over four while the grid is three wide, so the
    pastels run diagonally instead of striping the columns */
 .tile:nth-child(4n+1) .tile-fill{ --tint: var(--mint); }
@@ -352,11 +361,17 @@ h1.script{
   from{ opacity:0; transform: scale(.9); }
 }
 
+/* the frame carries a filter, which paints it as though it were positioned at z-index 0,
+   so the controls need a layer of their own or a photo wide enough to reach them - every
+   photo, on a phone - covers them */
 .lb-close, .lb-prev, .lb-next{
   position:absolute;
+  z-index:1;
   border:0;
   background:transparent;
   color: var(--cream);
+  /* they sit over the photo once it is that wide, and a photo can be any brightness */
+  text-shadow: 0 1px 6px rgba(0,0,0,.55);
   font-family:'Quicksand', sans-serif;
   font-weight:600;
   line-height:1;

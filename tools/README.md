@@ -1,3 +1,17 @@
+# The gallery's photos
+
+`make-gallery.mjs` is the one tool here that is not a check. It reads the originals in
+`assets-src/gallery/<roll>/` - gitignored, and never served - and writes the two copies the
+page does serve:
+
+    node tools/make-gallery.mjs
+
+A 300px square crop per photo into `site/assets/gallery/thumb/` for the tile, and a 1600px
+copy into `full/` for the lightbox. It uses `sips`, which macOS ships, so the repo gains no
+dependency. Names are positional - `oum-by-non-01.jpg` through `us-two-24.jpg` - so
+re-running overwrites in place and the markup never changes. To reorder a roll, rename its
+originals so they sort differently and run it again.
+
 # Checks
 
 Playwright drives a real Chrome, so it is not part of the site - the site itself still has
@@ -23,12 +37,12 @@ It also holds the gallery: three tiles a row at every width in that table, each 
 square and inside the content column, and the page never laid out wider than its window.
 Then it drives the lightbox: a tile opens it, the arrows and a swipe turn the photo and
 wrap inside that roll rather than crossing into the next, and Escape and a click off close
-it. Last it checks the two things that only show while the photos are missing: every tile
-is still a plain link to its own file with the script off, and an absent photo paints as
-one flat tinted square rather than the browser's broken-image glyph.
+it. Last it checks that every tile is still a plain link to its own file with the script off,
+and that the photo in the lightbox keeps its own proportions rather than stretching to the
+frame's minimum square.
 
-That last pair rests on how an engine draws a broken image and how it sizes a real one,
-which each decides for itself, so they are checked in WebKit and Firefox too. Those two
+That last one rests on how an engine sizes an image inside a box with a minimum, which each
+decides for itself, so it is checked in WebKit and Firefox too. Those two
 are optional: install them with
 
     npx playwright install webkit firefox

@@ -2,3 +2,6 @@
 .DS_Store
 node_modules/
 .scratch/tmp/
+
+# the gallery's originals - only the derived thumb/ and full/ under site/ ship
+assets-src/gallery/

@@ -38,7 +38,10 @@ for (const [width, expected] of WIDTHS) {
   await page.goto(invitation, { waitUntil: 'networkidle' });
   await page.evaluate(async () => {
     await document.fonts.ready;
-    await Promise.all([...document.images].filter((i) => !i.complete)
+    // a lazy tile below the fold is never fetched, so waiting on its load event never
+    // returns - and the tiles take their size from the grid rather than from the photo
+    await Promise.all([...document.images]
+      .filter((i) => !i.complete && i.loading !== 'lazy')
       .map((i) => new Promise((res) => { i.onload = i.onerror = res; })));
   });
 
@@ -129,29 +132,6 @@ for (const [width, expected] of WIDTHS) {
 // one tile of a roll, by their positions on the page
 const tile = (page, roll, n) => page.locator('.roll').nth(roll).locator('.tile').nth(n);
 
-/* the widest spread between any two pixels of a screenshot, per channel. Decoding
-   happens in the page itself: a canvas is the only PNG reader here that costs no
-   dependency, and the site is meant to keep building with none. */
-const spread = (page, png) => page.evaluate(async (b64) => {
-  const img = new Image();
-  img.src = 'data:image/png;base64,' + b64;
-  await img.decode();
-  const c = document.createElement('canvas');
-  c.width = img.width;
-  c.height = img.height;
-  const ctx = c.getContext('2d');
-  ctx.drawImage(img, 0, 0);
-  const a = ctx.getImageData(0, 0, c.width, c.height).data;
-  const min = [255, 255, 255], max = [0, 0, 0];
-  for (let i = 0; i < a.length; i += 4) {
-    for (let k = 0; k < 3; k++) {
-      if (a[i + k] < min[k]) min[k] = a[i + k];
-      if (a[i + k] > max[k]) max[k] = a[i + k];
-    }
-  }
-  return max.map((v, k) => v - min[k]);
-}, png.toString('base64'));
-
 // the file name of the photo the lightbox is showing, or null when it is closed
 const showing = (page) => page.evaluate(() => {
   const d = document.querySelector('.lightbox');
@@ -171,15 +151,18 @@ for (const width of [390, 1440]) {
   at = await showing(page);
   if (at !== 'oum-by-non-24.jpg') bad(`the lightbox opened on ${at}, not the tile that was clicked`);
 
-  // there are no photos yet, so the picture must paint as one plain tint: a broken-image
-  // icon or the alt text showing through would both break the spread
-  const frame = await page.locator('.lb-frame').boundingBox();
-  const inset = 14;   // clears the corner radius, which antialiases against the scrim
-  const channels = await spread(page, await page.screenshot({ clip: {
-    x: frame.x + inset, y: frame.y + inset,
-    width: frame.width - inset * 2, height: frame.height - inset * 2,
-  } }));
-  if (channels.some((s) => s > 4)) bad(`the empty picture is not a plain square: channels spread by ${channels.join('/')}`);
+  // the photo itself decoded, and is drawn at its own proportions rather than stretched
+  // to the frame's minimum square
+  const shape = await page.evaluate(async () => {
+    const img = document.querySelector('.lb-img');
+    if (!img.complete) await new Promise((res) => { img.onload = img.onerror = res; });
+    const r = img.getBoundingClientRect();
+    return { natural: img.naturalWidth / img.naturalHeight, drawn: r.width / r.height, w: img.naturalWidth };
+  });
+  if (!shape.w) bad('the lightbox photo did not load');
+  else if (Math.abs(shape.natural - shape.drawn) > 0.01) {
+    bad(`the photo is drawn at ${shape.drawn.toFixed(3)}, not its own ${shape.natural.toFixed(3)}`);
+  }
 
   await page.keyboard.press('ArrowRight');
   at = await showing(page);
@@ -279,11 +262,11 @@ for (const width of [390, 1440]) {
   await page.close();
 }
 
-/* --- the empty picture, in the other two engines ---
-   The square rests on a browser rendering a broken img as nothing at all, and on it not
-   stretching a real one to the frame's minimum. Each engine decides both for itself, and
-   Chrome is the only one the rest of this file drives. These run when the browsers are
-   installed and say so when they are not, so a checkout with only Chrome still passes. */
+/* --- the picture's shape, in the other two engines ---
+   The frame carries a minimum square and the img is left to size itself, so whether a
+   photo keeps its own proportions is each engine's decision, and Chrome is the only one
+   the rest of this file drives. These run when the browsers are installed and say so when
+   they are not, so a checkout with only Chrome still passes. */
 for (const [name, type] of [['webkit', webkit], ['firefox', firefox]]) {
   let engine;
   try {
@@ -297,27 +280,17 @@ for (const [name, type] of [['webkit', webkit], ['firefox', firefox]]) {
   console.log(`\n${name}`);
 
   await tile(page, 0, 0).click();
-  const frame = await page.locator('.lb-frame').boundingBox();
-  const inset = 14;
-  const channels = await spread(page, await page.screenshot({ clip: {
-    x: frame.x + inset, y: frame.y + inset,
-    width: frame.width - inset * 2, height: frame.height - inset * 2,
-  } }));
-  if (channels.some((s) => s > 4)) bad(`${name}: the empty picture is not a plain square: channels spread by ${channels.join('/')}`);
-
-  // and a photo that does exist keeps its own proportions inside that same frame
   const shape = await page.evaluate(async () => {
     const img = document.querySelector('.lb-img');
-    const done = new Promise((res) => { img.onload = img.onerror = res; });
-    img.src = 'assets/map.png';
-    await done;
+    if (!img.complete) await new Promise((res) => { img.onload = img.onerror = res; });
     const r = img.getBoundingClientRect();
-    return { natural: img.naturalWidth / img.naturalHeight, drawn: r.width / r.height };
+    return { natural: img.naturalWidth / img.naturalHeight, drawn: r.width / r.height, w: img.naturalWidth };
   });
-  if (Math.abs(shape.natural - shape.drawn) > 0.01) {
-    bad(`${name}: a real photo is drawn at ${shape.drawn.toFixed(3)}, not its own ${shape.natural.toFixed(3)}`);
+  if (!shape.w) bad(`${name}: the lightbox photo did not load`);
+  else if (Math.abs(shape.natural - shape.drawn) > 0.01) {
+    bad(`${name}: the photo is drawn at ${shape.drawn.toFixed(3)}, not its own ${shape.natural.toFixed(3)}`);
   } else {
-    console.log('  an absent photo is a plain square and a real one keeps its shape');
+    console.log('  the photo keeps its own shape inside the frame');
   }
   await page.close();
   await engine.close();
