@@ -1,0 +1,4 @@
+# The invitation is for the people we send it to. The noindex meta on each page covers a
+# crawler that reads the page; this covers one that only reads the rules.
+User-agent: *
+Disallow: /

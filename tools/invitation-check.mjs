@@ -23,10 +23,12 @@ const WIDTHS = [
 const EDGE_TOLERANCE = 2;
 const CLEARANCE = 2;
 
-// the gallery's shape: three rolls of 24, three tiles a row. The tile size itself is
-// never asserted in px - it rides the column, which rides the card inset
+// the gallery's shape: three rolls of 24. The two strip rolls run their 24 frames in one
+// scrolling row; "Us two" keeps three tiles a row. Neither tile size is asserted in px -
+// both ride the column, which rides the card inset
 const ROLLS = 3;
 const PER_ROLL = 24;
+const PER_GRID_ROW = 3;
 const TILE_TOLERANCE = 1.5;
 
 const browser = await chromium.launch({ channel: 'chrome' });
@@ -59,7 +61,17 @@ for (const [width, expected] of WIDTHS) {
     const card = { l: outer.left + waveX, r: outer.right - waveX, t: outer.top + waveX, b: outer.bottom - waveBottom };
     const content = [];
     for (const el of document.querySelectorAll('.content img:not(.deco), .content .btn, .content .tile')) {
-      content.push({ name: el.className || el.tagName, ...box(el.getBoundingClientRect()) });
+      const r = box(el.getBoundingClientRect());
+      // a frame scrolled off the end of a strip still reports a box out in the margin
+      // band, where nothing of it is painted, so it is clipped to its scroller first
+      const scroller = el.closest('.tiles');
+      if (scroller && getComputedStyle(scroller).overflowX !== 'visible') {
+        const s = scroller.getBoundingClientRect();
+        r.l = Math.max(r.l, s.left);
+        r.r = Math.min(r.r, s.right);
+        if (r.r <= r.l) continue;
+      }
+      content.push({ name: el.className || el.tagName, ...r });
     }
     for (const el of document.querySelectorAll('.content p, .content h1, .content h2, .content h3')) {
       const range = document.createRange();
@@ -73,10 +85,17 @@ for (const [width, expected] of WIDTHS) {
       // body{overflow-x:hidden} hides a spill from a scroll test, so the layout is measured instead
       pageWidth: document.documentElement.scrollWidth,
       windowWidth: window.innerWidth,
-      rolls: [...document.querySelectorAll('.roll')].map((roll) => ({
-        name: roll.querySelector('h3').textContent,
-        tiles: [...roll.querySelectorAll('.tile')].map((t) => box(t.getBoundingClientRect())),
-      })),
+      rolls: [...document.querySelectorAll('.roll')].map((roll) => {
+        const tiles = roll.querySelector('.tiles');
+        return {
+          name: roll.querySelector('h3').textContent,
+          strip: roll.classList.contains('roll--strip'),
+          // a strip has to overflow its scroller, or its 24 frames were never in one row
+          scrolls: tiles.scrollWidth > tiles.clientWidth,
+          scroller: box(tiles.getBoundingClientRect()),
+          tiles: [...roll.querySelectorAll('.tile')].map((t) => box(t.getBoundingClientRect())),
+        };
+      }),
       shown: shown.map((d) => ({ name: d.getAttribute('src').replace('assets/', ''),
         section: d.parentElement.className, ...box(d.getBoundingClientRect()) })),
     };
@@ -96,7 +115,8 @@ for (const [width, expected] of WIDTHS) {
     }
   }
 
-  // the gallery: three tiles a row at every width, each square, none past the column
+  // the gallery: every tile square, a strip's 24 frames in one scrolling row, the grid's
+  // three to a row, and nothing of either past the column
   if (report.rolls.length !== ROLLS) bad(`${ROLLS} rolls expected, ${report.rolls.length} rendered`);
   for (const roll of report.rolls) {
     if (roll.tiles.length !== PER_ROLL) bad(`${roll.name}: ${PER_ROLL} tiles expected, ${roll.tiles.length} rendered`);
@@ -107,14 +127,28 @@ for (const [width, expected] of WIDTHS) {
       const row = rows.find((r) => Math.abs(r.top - t.t) < 4);
       if (row) row.n++; else rows.push({ top: t.t, n: 1 });
     }
-    for (const r of rows) if (r.n !== 3) bad(`${roll.name}: ${r.n} tiles on the row at y ${Math.round(r.top)}, not 3`);
-    if (rows.length !== PER_ROLL / 3) bad(`${roll.name}: ${rows.length} rows, not ${PER_ROLL / 3}`);
+    if (roll.strip) {
+      if (rows.length !== 1) bad(`${roll.name}: ${rows.length} rows, not the strip's one`);
+      if (!roll.scrolls) bad(`${roll.name}: the strip does not scroll - its frames fit the column`);
+    } else {
+      for (const r of rows) if (r.n !== PER_GRID_ROW) bad(`${roll.name}: ${r.n} tiles on the row at y ${Math.round(r.top)}, not ${PER_GRID_ROW}`);
+      if (rows.length !== PER_ROLL / PER_GRID_ROW) bad(`${roll.name}: ${rows.length} rows, not ${PER_ROLL / PER_GRID_ROW}`);
+    }
     for (const t of roll.tiles) {
       const w = t.r - t.l, h = t.b - t.t;
       if (Math.abs(w - h) > TILE_TOLERANCE) bad(`${roll.name}: a tile is ${w.toFixed(1)}x${h.toFixed(1)}, not square`);
+      // a strip's frames run past the column by design; what must stay inside it is the
+      // scroller that clips them
+      if (roll.strip) continue;
       const c = report.column;
       if (t.l < c.l - EDGE_TOLERANCE || t.r > c.r + EDGE_TOLERANCE) {
         bad(`${roll.name}: a tile leaves the column: x ${Math.round(t.l)}..${Math.round(t.r)} of ${Math.round(c.l)}..${Math.round(c.r)}`);
+      }
+    }
+    if (roll.strip) {
+      const s = roll.scroller, c = report.column;
+      if (s.l < c.l - EDGE_TOLERANCE || s.r > c.r + EDGE_TOLERANCE) {
+        bad(`${roll.name}: the strip leaves the column: x ${Math.round(s.l)}..${Math.round(s.r)} of ${Math.round(c.l)}..${Math.round(c.r)}`);
       }
     }
   }

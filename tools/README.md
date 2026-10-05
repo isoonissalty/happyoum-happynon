@@ -12,6 +12,9 @@ dependency. Names are positional - `oum-by-non-01.jpg` through `us-two-24.jpg` -
 re-running overwrites in place and the markup never changes. To reorder a roll, rename its
 originals so they sort differently and run it again.
 
+A photo that needs a stranger cropped out is edited in `assets-src/gallery/<roll>/` and the
+tool re-run - it takes each original as given, and both copies follow the edit.
+
 # Checks
 
 Playwright drives a real Chrome, so it is not part of the site - the site itself still has
@@ -33,8 +36,10 @@ single viewport at nine window sizes including short laptops.
 content, text by its glyph extent, and asserts how many render at each width - so a
 placement that hides the scatter cannot pass as "nothing overlaps".
 
-It also holds the gallery: three tiles a row at every width in that table, each tile
-square and inside the content column, and the page never laid out wider than its window.
+It also holds the gallery at every width in that table: every tile square, the two strip
+rolls each one row that really overflows its scroller, "Us two" three tiles a row, the grid
+and both scrollers inside the content column, and the page never laid out wider than its
+window.
 Then it drives the lightbox: a tile opens it, the arrows and a swipe turn the photo and
 wrap inside that roll rather than crossing into the next, and Escape and a click off close
 it. Last it checks that every tile is still a plain link to its own file with the script off,

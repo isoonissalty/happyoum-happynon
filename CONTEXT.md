@@ -52,9 +52,12 @@ picture. The cards are static markup in `index.html` so the copy is edited in pl
 The invitation's last section, under the RSVP buttons, headed "Us, lately". Three
 **rolls** - "Oum, by Non", "Non, by Oum", "Us two" - of 24 photos each.
 
-A **tile** is one photo in a roll's grid: a square, three to a row at every window
-size. Not "thumbnail", which names the file a tile shows rather than the thing on the
-page.
+A **tile** is one photo in a roll: always a square. Not "thumbnail", which names the
+file a tile shows rather than the thing on the page.
+
+"Oum, by Non" and "Non, by Oum" are **strip** rolls: their 24 tiles run as one row of
+film, perforated top and bottom, scrolled left and right by hand. "Us two" keeps the
+**grid**: three tiles a row at every window size.
 
 Tapping a tile opens the **lightbox**: that photo alone on a scrim, with arrows, swipe
 and Escape, wrapping at the ends of its own roll and never crossing into the next.

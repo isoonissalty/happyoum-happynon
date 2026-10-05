@@ -237,7 +237,10 @@ h1.script{
 }
 
 /* ---------------------------------------------------------------------------
-   The gallery: three rolls of 24, three tiles a row at every width.
+   The gallery: three rolls of 24. The two rolls one of us shot of the other run
+   as a strip of film - 24 frames in a row, scrolled by hand. "Us two" stays a
+   grid three tiles a row at every width: it is the pair of us rather than one of
+   us looking at the other, so it sits as the section's one block.
 
    The grid rides the content column rather than a tile size of its own, so the
    tiles shrink with the card inset instead of forcing the page wider. Each tile
@@ -273,6 +276,45 @@ h1.script{
   border-radius:6px;
   overflow:hidden;
   transition: translate .25s var(--ease-soft);
+}
+
+/* The strip: the ink base and its perforations are the card's own outline colour,
+   so the film reads as film without bringing a black onto the cream. The bands are
+   the scroller's padding, which also gives the hover lift and the focus ring room
+   that overflow-x would otherwise clip. The base scrolls with the frames -
+   background-attachment:local - so the sprockets travel as the roll is pulled. */
+.roll--strip .tiles{
+  --frame-gap: clamp(5px, 0.7vw, 9px);
+  --sprocket-band: clamp(13px, 1.4vw, 18px);
+  --perforations: repeating-linear-gradient(90deg,
+    transparent 0 7px, var(--cream) 7px 15px, transparent 15px 22px);
+  display:flex;
+  gap: var(--frame-gap);
+  padding: var(--sprocket-band) var(--frame-gap);
+  overflow-x:auto;
+  /* a swipe past the last frame would otherwise chain into the browser's history */
+  overscroll-behavior-x: contain;
+  /* proximity, not mandatory: the strip ends on a part-frame that says it runs on,
+     and mandatory would snap that away */
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--frame-gap);
+  border-radius:4px;
+  background:
+    var(--perforations) 0 calc(var(--sprocket-band) / 2 - 3px),
+    var(--perforations) 0 calc(100% - var(--sprocket-band) / 2 + 3px),
+    var(--ink);
+  background-repeat: repeat-x;
+  background-size: 22px 7px;
+  background-attachment: local;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mint) transparent;
+}
+
+.roll--strip .tile{
+  flex: 0 0 clamp(96px, 14vw, 168px);
+  scroll-snap-align: start;
+  /* a frame in a strip is cut square, not rounded like a tile in the grid */
+  border-radius:2px;
 }
 
 .tile-fill{
